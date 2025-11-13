@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Report list</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="../Back office/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="../Back office/css/sb-admin-2.min.css" rel="stylesheet">
+
+<style type="text/css" id="operaUserStyle"></style></head>
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+            <!-- Sidebar - Brand -->
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+                <div class="sidebar-brand-icon rotate-n-15">
+                    <i class="fas fa-laugh-wink"></i>
+                </div>
+                <div class="sidebar-brand-text mx-3">Admin Starr<sup>*</sup></div>
+            </a>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider my-0">
+
+            <!-- Nav Item - Dashboard -->
+            <li class="nav-item active">
+                <a class="nav-link">
+                    <span>Report list</span></a>
+            </li>   
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Work
+            </div>
+            <!-- Nav Item - Charts -->
+            <li class="nav-item">
+                <a class="nav-link" href="Review-list.html">
+          <i class="fas fa-fw fa-chart-area"></i>
+                    <span>View reports</span></a>
+            </li>
+            <!-- Nav Item - Charts -->
+            <li class="nav-item">
+                <a class="nav-link" href="Dashboard.html">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Admin Dashboard</span></a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider d-none d-md-block">
+
+            <!-- Sidebar Toggler (Sidebar) -->
+            <div class="text-center d-none d-md-inline">
+                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+            </div>
+
+            <!-- Sidebar Message
+            <div class="sidebar-card d-none d-lg-flex">
+                <img class="sidebar-card-illustration mb-2" src="img/undraw_rocket.svg" alt="...">
+                <p class="text-center mb-2"><strong>SB Admin Pro</strong> is packed with premium features, components, and more!</p>
+                <a class="btn btn-success btn-sm" href="https://startbootstrap.com/theme/sb-admin-pro">Upgrade to Pro!</a>
+            </div> -->
+
+        </ul>
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+
+                    <!-- Sidebar Toggle (Topbar) -->
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+
+                    <!-- Topbar Navbar -->
+                    <ul class="navbar-nav ml-auto">
+
+                        <div class="topbar-divider d-none d-sm-block"></div>
+
+                    </ul>
+
+                </nav>
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <h1 class="h3 mb-4 text-gray-800">View Profiles</h1>
+
+                    <!-- Content Row -->
+                    <div class="row">
+
+                        <!-- Report List Card -->
+                        <div class="col-lg-12">
+                            <div class="card shadow mb-4">
+                                <!-- Card Header -->
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Report List</h6>
+                                </div>
+
+                                <!-- Card Body -->
+                                <div class="card-body">
+                                    <style>
+                                        .profile-list-item {
+                                            display: flex;
+                                            align-items: center;
+                                            padding: 16px;
+                                            border-bottom: 1px solid #e3e6f0;
+                                            transition: background-color 0.2s ease;
+                                        }
+
+                                        .profile-list-item:hover {
+                                            background-color: #f8f9fc;
+                                        }
+
+                                        .profile-list-item:last-child {
+                                            border-bottom: none;
+                                        }
+
+                                        .profile-avatar {
+                                            width: 50px;
+                                            height: 50px;
+                                            border-radius: 50%;
+                                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            color: white;
+                                            font-weight: bold;
+                                            font-size: 18px;
+                                            margin-right: 16px;
+                                            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                                        }
+
+                                        .profile-info {
+                                            flex: 1;
+                                        }
+
+                                        .profile-name {
+                                            font-weight: 600;
+                                            color: #2e3338;
+                                            margin-bottom: 4px;
+                                        }
+
+                                        .profile-username {
+                                            font-size: 14px;
+                                            color: #858796;
+                                            margin-bottom: 8px;
+                                        }
+
+                                        .profile-meta {
+                                            display: flex;
+                                            gap: 12px;
+                                            flex-wrap: wrap;
+                                            align-items: center;
+                                        }
+
+                                        .profile-badge {
+                                            display: inline-block;
+                                            padding: 4px 10px;
+                                            border-radius: 12px;
+                                            font-size: 12px;
+                                            font-weight: 600;
+                                            color: #fff;
+                                        }
+
+                                        .profile-badge.Teacher { background: #7b61ff; }
+                                        .profile-badge.Kid { background: #ff7a7a; }
+                                        .profile-badge.Parent { background: #4db6ac; }
+                                        .profile-badge.Admin { background: #ffa726; }
+
+                                        .profile-reports {
+                                            font-size: 13px;
+                                            color: #e53935;
+                                            font-weight: 600;
+                                        }
+
+                                        .profile-actions {
+                                            display: flex;
+                                            gap: 8px;
+                                        }
+
+                                        .profile-actions button {
+                                            padding: 6px 12px;
+                                            font-size: 12px;
+                                            border: none;
+                                            border-radius: 6px;
+                                            cursor: pointer;
+                                            transition: all 0.2s ease;
+                                        }
+
+                                        .profile-actions .view-btn {
+                                            background: #4a90e2;
+                                            color: white;
+                                        }
+
+                                        .profile-actions .view-btn:hover {
+                                            background: #357ab7;
+                                        }
+
+                                        .profile-grid {
+                                            display: grid;
+                                            grid-template-columns: repeat(auto-fill, minmax(1fr, 1fr));
+                                            gap: 0;
+                                        }
+                                    </style>
+
+                                    <!-- Profile List -->
+                                    <div class="profile-grid">
+                                        <!-- Profile Item 1 -->
+                                        <div class="profile-list-item">
+                                            <img class="img-profile rounded-circle" src="img/undraw_profile.svg">
+                                            <div class="profile-info">
+                                                <div class="profile-name">Amina Ben Salah</div>
+                                                <div class="profile-username">@MissAmina</div>
+                                                <div class="profile-meta">
+                                                    <span class="profile-badge Teacher">Teacher</span>
+                                                    <span class="profile-reports">🚨 0 Reports</span>
+                                                </div>
+                                            </div>
+                                            <div class="profile-actions">
+                                                <a href="#" class="btn btn-primary">View</a>
+                                            </div>
+                                        </div>
+
+                                        <!-- Profile Item 2 -->
+                                        <div class="profile-list-item">
+                                           <img class="img-profile rounded-circle" src="img/undraw_profile.svg">
+                                           <div class="profile-info">
+                                                <div class="profile-name">Youssef Hajri</div>
+                                                <div class="profile-username">@YoyoKid</div>
+                                                <div class="profile-meta">
+                                                    <span class="profile-badge Kid">Student</span>
+                                                    <span class="profile-reports">🚨 1 Report</span>
+                                                    <span style="color: #fbc02d; font-weight: 600;">⭐ 130 Stars</span>
+                                                </div>
+                                            </div>
+                                            <div class="profile-actions">
+                                                <a href="#" class="btn btn-primary">View</a>
+                                            </div>
+                                        </div>
+
+                                        <!-- Profile Item 3 -->
+                                        <div class="profile-list-item">
+                                            <img class="img-profile rounded-circle" src="img/undraw_profile.svg">
+                                            <div class="profile-info">
+                                                <div class="profile-name">Mouna Trabelsi</div>
+                                                <div class="profile-username">@MounaT</div>
+                                                <div class="profile-meta">
+                                                    <span class="profile-badge Parent">Parent</span>
+                                                    <span class="profile-reports">🚨 0 Reports</span>
+                                                </div>
+                                            </div>
+                                            <div class="profile-actions">
+                                                <a href="#" class="btn btn-primary">View</a>
+                                            </div>
+                                        </div>
+
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright © Your Website 2021</span>
+                    </div>
+                </div>
+            </footer>
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <a class="btn btn-primary" href="login.html">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="/Back office/vendor/jquery/jquery.min.js"></script>
+    <script src="/Back office/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="/Back office/vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="/Back office/js/sb-admin-2.min.js"></script>
+
+    <!-- Page level plugins -->
+    <script src="vendor/chart.js/Chart.min.js"></script>
+
+</body>
+</html>
