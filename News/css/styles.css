@@ -1,0 +1,214 @@
+/* News Section Styles - Kider Template Integration */
+:root {
+  --primary: #FE5D37;
+  --light: #FFF5F3;
+  --dark: #103741;
+  --muted: #666;
+}
+
+body {
+  margin: 0;
+  font-family: 'Heebo', 'Inter', sans-serif;
+  background-color: #ffffff;
+  color: var(--dark);
+}
+
+.container {
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+/* News List Container */
+.news-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* News Articles Grid/Cards */
+.news-item, article {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 16px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-left: 4px solid var(--primary);
+}
+
+.news-item:hover, article:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.news-item h2, article h1, article h2 {
+  font-family: 'Lobster Two', cursive;
+  font-size: 1.4rem;
+  color: var(--dark);
+  margin: 0 0 12px;
+  font-weight: 700;
+}
+
+.news-item a, article a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.news-item a:hover, article a:hover {
+  text-decoration: underline;
+}
+
+.meta {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0 0 12px;
+  display: flex;
+  gap: 8px;
+}
+
+.meta i {
+  color: var(--primary);
+}
+
+.excerpt, .article-excerpt {
+  color: #333;
+  margin: 12px 0;
+  line-height: 1.6;
+}
+
+/* Article Images */
+img.article-thumbnail {
+  border-radius: 8px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+img.article-thumbnail:hover {
+  transform: scale(1.02);
+}
+
+img#hero {
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+/* Section Title */
+.section-title {
+  font-family: 'Lobster Two', cursive;
+  font-size: 2.2rem;
+  color: var(--dark);
+  margin-bottom: 24px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.section-title span {
+  color: var(--primary);
+}
+
+/* Sidebar */
+.sidebar {
+  background: var(--light);
+  padding: 20px;
+  border-radius: 8px;
+  margin: 16px 0;
+}
+
+.sidebar h5 {
+  font-family: 'Lobster Two', cursive;
+  color: var(--dark);
+  margin-bottom: 16px;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.sidebar input, .sidebar select {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+
+.sidebar a {
+  display: block;
+  padding: 8px 0;
+  color: var(--primary);
+  text-decoration: none;
+  border-bottom: 1px solid #eee;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.sidebar a:hover {
+  color: var(--dark);
+}
+
+/* Footer */
+.site-footer, footer {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-top: 40px;
+  border-top: 1px solid #eee;
+  background: #f9f9f9;
+}
+
+/* Back Link */
+.back-link {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 10px 16px;
+  background: var(--primary);
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 0.3s;
+  font-weight: 500;
+}
+
+.back-link:hover {
+  background: #e04520;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .container { padding: 0 12px; }
+  .section-title { font-size: 1.8rem; }
+  .news-item h2 { font-size: 1.2rem; }
+}
+
+/* Header background image blur - less blurry (3px) and only affects background */
+.page-header {
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: inherit;
+  background-attachment: fixed;
+  -webkit-filter: blur(3px);
+  filter: blur(3px);
+  z-index: 0;
+}
+
+.page-header > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Utility class to toggle blur off if needed */
+.page-header.blur-off::before {
+  -webkit-filter: none !important;
+  filter: none !important;
+}
+

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>News — Details</title>
+
+  <!-- Kider template fonts & icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Inter:wght@600&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+
+  <!-- Kider stylesheet (local to project) -->
+  <link href="../kider-1.0.0/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../kider-1.0.0/css/style.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+
+<body>
+  <div class="container-xxl bg-white p-0">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg bg-white navbar-light sticky-top px-4 px-lg-5 py-lg-0">
+      <a href="../kider-1.0.0/index.html" class="navbar-brand">
+        <h1 class="m-0 text-primary"><i class="fa fa-book-reader me-3"></i>Kider</h1>
+      </a>
+      <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarCollapse">
+        <div class="navbar-nav mx-auto">
+          <a href="../kider-1.0.0/index.html" class="nav-item nav-link">Home</a>
+          <a href="../kider-1.0.0/about.html" class="nav-item nav-link">About Us</a>
+          <a href="../kider-1.0.0/classes.html" class="nav-item nav-link">Classes</a>
+          <a href="../kider-1.0.0/contact.html" class="nav-item nav-link">Contact</a>
+        </div>
+        <a href="#" class="btn btn-primary rounded-pill px-3 d-none d-lg-block">Join Us<i class="fa fa-arrow-right ms-3"></i></a>
+      </div>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="page-header container-xxl py-5 mb-5">
+      <div class="container text-center py-5">
+        <h1 class="display-5 mb-3" id="title">Loading…</h1>
+        <p class="fs-5 text-muted" id="meta"> </p>
+      </div>
+    </div>
+
+    <main class="container">
+      <article class="bg-white rounded p-4 shadow-sm">
+        <img id="hero" src="../kider-1.0.0/img/header new.png" alt="hero" class="img-fluid rounded mb-4" style="width:100%;height:320px;object-fit:cover">
+        <div id="content">Please wait — content will appear here.</div>
+        <p class="mt-4"><a href="list-news.html" class="back-link"><i class="fa fa-arrow-left me-2"></i>Back to News</a></p>
+      </article>
+    </main>
+
+    <!-- Footer -->
+    <footer class="container-xxl py-5">
+      <div class="container">
+        <div class="text-center">
+          <p class="mb-0">&copy; 2025 News — Integrated with Kider template</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../kider-1.0.0/js/main.js"></script>
+
+  <script>
+    // Simple client-side article map (keeps same demo behavior but with nicer layout)
+    const articles = {
+      '1': {
+        title: 'City Park Reopens After Renovation',
+        meta: 'Nov 11, 2025',
+        hero: '../kider-1.0.0/img/header new.png',
+        body: `<p>The city park reopened today after a six-month renovation project focused on accessibility and native planting. The new playground and paths are now open to the public.</p>
+               <p>Volunteers will lead native planting workshops next weekend — everyone is welcome.</p>`
+      },
+      '2': {
+        title: 'Local Startup Raises Seed Round',
+        meta: 'By Bob — Nov 10, 2025',
+        hero: '../kider-1.0.0/img/classes-1.jpg',
+        body: `<p>A local fintech startup announced a successful seed round led by regional investors. The funds will be used to expand the engineering team and launch a beta.</p>`
+      },
+      '3': {
+        title: 'Community Garden Harvest Festival',
+        meta: 'By Carol — Nov 09, 2025',
+        hero: '../kider-1.0.0/img/classes-3.jpg',
+        body: `<p>The harvest festival will include workshops, live music, and a farmer's market. Admission is free.</p>`
+      }
+    };
+
+    function getQueryParam(name) {
+      const params = new URLSearchParams(location.search);
+      return params.get(name);
+    }
+
+    const id = getQueryParam('id') || '1';
+    const article = articles[id];
+    const titleEl = document.getElementById('title');
+    const metaEl = document.getElementById('meta');
+    const contentEl = document.getElementById('content');
+    const heroEl = document.getElementById('hero');
+
+    if (article) {
+      titleEl.textContent = article.title;
+      metaEl.textContent = article.meta;
+      contentEl.innerHTML = article.body;
+      if (article.hero) heroEl.src = article.hero;
+    } else {
+      titleEl.textContent = 'Article not found';
+      contentEl.innerHTML = '<p>No article matches the requested id.</p>';
+      heroEl.style.display = 'none';
+    }
+  </script>
+</body>
+</html>
