@@ -13,6 +13,9 @@
     z-index: 99;
 }
 
+.navbar-nav .nav-link {
+    font-family: 'Coming Soon', cursive;
+}
 
 /*** Spinner ***/
 #spinner {
