@@ -1,0 +1,107 @@
+project_root/
+│
+├── Model/
+│   ├── User.php
+│   ├── Post.php
+│   ├── Report.php
+│   ├── Solution.php
+│   ├── Reward.php
+│   ├── Lesson.php
+│   ├── InclusionBlock.php
+│   ├── Database.php
+│   └── (any entity classes)
+│
+├── Controller/
+│   ├── UserController.php
+│   ├── PostController.php
+│   ├── ReportController.php
+│   ├── SolutionController.php
+│   ├── RewardController.php
+│   ├── LessonController.php
+│   ├── InclusionController.php
+│   └── AdminController.php
+│
+├── View/
+│   ├── front_office/
+│   │   ├── templates/          ← header, footer, shared partials
+│   │   │     ├── header.php
+│   │   │     ├── footer.php
+│   │   │     └── navbar.php
+│   │   │
+│   │   ├── user/               ← module: user sign-up, login, profile
+│   │   │     ├── login.html
+│   │   │     ├── signup.html
+│   │   │     ├── profile.html
+│   │   │     └── edit_profile.html
+│   │   │
+│   │   ├── posts/              ← module: posts & messages
+│   │   │     ├── create_post.html
+│   │   │     ├── post_feed.html
+│   │   │     ├── post_detail.html
+│   │   │     └── comments.html
+│   │   │
+│   │   ├── rewards/            ← module: reward system
+│   │   │     ├── shop.html
+│   │   │     ├── inventory.html
+│   │   │     └── reward_history.html
+│   │   │
+│   │   ├── learning/           ← module: learning section
+│   │   │     ├── quiz.html
+│   │   │     ├── puzzles.html
+│   │   │     └── teacher_QA.html
+│   │   │
+│   │   ├── inclusion/          ← module: inclusion zone (not forum)
+│   │   │     ├── stories.html
+│   │   │     ├── awareness_blocks.html
+│   │   │     └── share_story.html
+│   │   │
+│   │   └── assets/             ← CSS/JS/img for front office
+│   │         ├── css/
+│   │         ├── js/
+│   │         └── img/
+│   │
+│   ├── back_office/            ← THE TRUE BACK OFFICE (Admin Panel)
+│   │   ├── templates/          
+│   │   │     ├── admin_header.php
+│   │   │     ├── admin_sidebar.php
+│   │   │     ├── admin_footer.php
+│   │   │     └── admin_nav.php
+│   │   │
+│   │   ├── dashboard/          ← main admin dashboard
+│   │   │     └── index.html
+│   │   │
+│   │   ├── admin_moderation/   ← your module ❤️
+│   │   │     ├── review_list.html
+│   │   │     ├── handle_report.html
+│   │   │     ├── solution_history.html
+│   │   │     ├── danger_zone.html
+│   │   │     └── banned_users.html
+│   │   │
+│   │   ├── users/              ← admin managing users
+│   │   │     ├── list_users.html
+│   │   │     └── edit_user.html
+│   │   │
+│   │   ├── posts/              ← admin managing posts
+│   │   │     ├── list_posts.html
+│   │   │     └── delete_post.html
+│   │   │
+│   │   └── assets/             ← SB Admin 2 template goes here
+│   │         ├── css/
+│   │         ├── js/
+│   │         └── vendor/
+│   │
+│   └── shared/                 ← things used by both FO + BO
+│         ├── components/
+│         └── auth_middleware.php
+│
+├── config/
+│   ├── config.php
+│   ├── routes.php
+│   └── db.php
+│
+├── public/                     ← entry point of the site (index, assets)
+│   ├── index.php
+│   ├── uploads/
+│   └── css/js/img/ (global)
+│
+└── README.md
