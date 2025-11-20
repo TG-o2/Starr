@@ -127,6 +127,39 @@ class ReportController {
         die('Error: ' . $e->getMessage());
     }
     }
+
+    public function getReportById($id) {
+    try {
+        $db = Config::getConnexion();
+        $query = $db->prepare("SELECT * FROM Report WHERE reportId = :id");
+        $query->execute(['id' => $id]);
+        $data = $query->fetch(PDO::FETCH_ASSOC);
+
+        if ($data) {
+            $report = new Report();
+            $report->setReportType($data['reportType']);
+            $report->setReportedUserId($data['reportedUserId']);
+            $report->setReportedPostId($data['reportedPostId']);
+            $report->setReportedCommentId($data['reportedCommentId']);
+            $report->setReportedLessonId($data['reportedLessonId']);
+            $report->setReportStatus($data['reportStatus']);
+            $report->setReportReason($data['reportReason']);
+            $report->setEvidencePath($data['evidencePath']);
+            $report->setReportDescription($data['reportDescription']);
+            $report->setReportDate($data['reportDate']);
+            $report->setReporterId($data['reporterId']);
+
+            return $report;
+        } else {
+            return null; // Report not found
+        }
+
+    } catch (PDOException $e) {
+        echo "Error: " . $e->getMessage();
+        return null;
+    }
+}
+
 }
 
 ?>
