@@ -4,14 +4,13 @@ require_once __DIR__ . '/../Model/StarrPoints.php';
 require_once __DIR__ . '/../config/config.php';
 
 class StarrPointsController {
-    private $model;
-    private $conn;
+    private $model; //StarrPoints model instance for database operations
+    private $conn; //PDO database connection object
 
     public function __construct($db) {
         $this->model = new StarrPoints($db);
         $this->conn = $db;
     }
-
     // CREATE - Insert new points record
     public function create($starr_id, $total_points, $last_login_date, $login_streak) {
         $this->model->starr_id = $starr_id;
@@ -36,7 +35,6 @@ class StarrPointsController {
     // READ - Get points by user ID
     public function getById($starr_id) {
         $result = $this->model->getByStarrId($starr_id);
-        
         if ($result) {
             return [
                 'success' => true,
@@ -56,7 +54,6 @@ class StarrPointsController {
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
-
         if ($stmt->execute()) {
             $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return [
@@ -78,7 +75,6 @@ class StarrPointsController {
         $this->model->total_points = (int)$total_points;
         $this->model->last_login_date = $last_login_date;
         $this->model->login_streak = (int)$login_streak;
-
         if ($this->model->updatePoints()) {
             return [
                 'success' => true,
@@ -95,7 +91,6 @@ class StarrPointsController {
     // DELETE - Remove points record
     public function delete($starr_id) {
         $this->model->starr_id = $starr_id;
-
         if ($this->model->deletePoints()) {
             return [
                 'success' => true,
@@ -112,7 +107,6 @@ class StarrPointsController {
     // ADD POINTS - Wrapper for adding points
     public function addPoints($starr_id, $amount) {
         $this->model->starr_id = $starr_id;
-        
         if ($this->model->addPoints($amount)) {
             return [
                 'success' => true,
@@ -129,7 +123,6 @@ class StarrPointsController {
     // SUBTRACT POINTS - Wrapper for subtracting points
     public function subtractPoints($starr_id, $amount) {
         $this->model->starr_id = $starr_id;
-        
         if ($this->model->subtractPoints($amount)) {
             return [
                 'success' => true,
@@ -146,7 +139,6 @@ class StarrPointsController {
     // UPDATE LOGIN STREAK
     public function updateLoginStreak($starr_id) {
         $this->model->starr_id = $starr_id;
-        
         if ($this->model->updateLoginStreak()) {
             return [
                 'success' => true,
@@ -163,7 +155,6 @@ class StarrPointsController {
     // RESET LOGIN STREAK
     public function resetLoginStreak($starr_id) {
         $this->model->starr_id = $starr_id;
-        
         if ($this->model->resetLoginStreak()) {
             return [
                 'success' => true,
@@ -182,7 +173,6 @@ class StarrPointsController {
         $query = "SELECT starr_id, total_points, login_streak FROM STARR_POINTS ORDER BY total_points DESC LIMIT :limit";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
-
         if ($stmt->execute()) {
             return [
                 'success' => true,
@@ -199,21 +189,16 @@ class StarrPointsController {
     // Validate input data
     public function validateInput($starr_id, $total_points, $login_streak) {
         $errors = [];
-
         if (empty($starr_id) || !is_numeric($starr_id)) {
             $errors[] = 'Valid Starr ID is required';
         }
-
         if (empty($total_points) || !is_numeric($total_points) || $total_points < 0) {
             $errors[] = 'Total points must be a non-negative number';
         }
-
         if (!is_numeric($login_streak) || $login_streak < 0) {
             $errors[] = 'Login streak must be a non-negative number';
         }
-
         return $errors;
     }
 }
-
 ?>
