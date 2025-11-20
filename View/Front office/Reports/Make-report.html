@@ -99,13 +99,14 @@
             <form id="reportForm" class="report-form" action="Make-report.php" method="POST" enctype="multipart/form-data">
                 <div class="mb-3">
                     <label for="reportType" class="form-label">What are you reporting?</label>
-                    <select class="form-select" id="reportType" name="reportType" required>
+                    <select class="form-select" id="reportType" name="reportType" >
                         <option value="" selected disabled>Choose type...</option>
                         <option value="user">User</option>
                         <option value="post">Post</option>
                         <option value="comment">Comment</option>
                         <option value="lesson">Lesson</option>
                     </select>
+                    <span class="nav-item nav-link" id="reported-type-msg"></span> 
                 </div>
 
                 <div class="mb-3">

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Handle Report</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="../assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,900" rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="../assets/css/sb-admin-2.min.css" rel="stylesheet">
+    
+    <script src="https://kit.fontawesome.com/9d17856d97.js" crossorigin="anonymous"></script>
+
+</head>
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+            <!-- Sidebar - Brand -->
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+                <div class="sidebar-brand-icon rotate-n-15">
+                    <i class="fas fa-laugh-wink"></i>
+                </div>
+                <div class="sidebar-brand-text mx-3">Admin Starr</div>
+            </a>
+
+            <hr class="sidebar-divider my-0">
+
+            <li class="nav-item active">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span></a>
+            </li>
+
+            <hr class="sidebar-divider">
+
+            <div class="sidebar-heading">Work</div>
+
+            <li class="nav-item">
+                <a class="nav-link" href="Review-list.php">
+                    <i class="fas fa-fw fa-chart-area"></i>
+                    <span>View Reports</span></a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="View-profiles.html">
+                    <i class="fas fa-fw fa-user"></i>
+                    <span>View Profiles</span></a>
+            </li>
+
+            <hr class="sidebar-divider d-none d-md-block">
+
+            <div class="text-center d-none d-md-inline">
+                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+            </div>
+
+        </ul>
+        <!-- End of Sidebar -->
+
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+
+                    <!-- Sidebar Toggle -->
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+
+                    <h5 class="m-0 font-weight-bold text-primary">Report Handler</h5>
+
+                </nav>
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <h1 class="h3 mb-4 text-gray-800">Handle Report</h1>
+
+                    <!-- Report Details Card -->
+                    <div class="card shadow mb-4 border-left-danger">
+
+                        <div class="card-header py-3 bg-light">
+                            <h6 class="m-0 font-weight-bold text-danger">
+                                <i class="fas fa-flag mr-2"></i> Report Details
+                            </h6>
+                        </div>
+
+                        <div class="card-body">
+
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <p><strong>Report ID:</strong> #1042</p>
+                                    <p><strong>Reported User:</strong> <span class="text-danger">@ToxicStudent</span></p>
+                                    <p><strong>Reported User ID:</strong> 22</p>
+                                    <p><strong>Reporter:</strong> @GoodKid</p>
+                                    <p><strong>Reporter ID:</strong> 14</p>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <p><strong>Post ID:</strong> 318</p>
+                                    <p><strong>Date Submitted:</strong> Nov 14, 2025</p>
+                                    <p><strong>Reason:</strong> Cyberbullying / Harassing messages</p>
+                                    <span class="badge badge-danger p-2 mt-2">Pending Review</span>
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <h6 class="font-weight-bold text-primary mb-2">
+                                <i class="fas fa-comment-dots mr-1"></i> Reported Post Content
+                            </h6>
+                            <div class="border p-3 rounded bg-light mb-4">
+                                <p class="text-muted mb-0">“You’re useless at this assignment. Nobody wants you in the group.”</p>
+                            </div>
+
+                            <hr>
+
+                            <h6 class="font-weight-bold text-primary mb-2">
+                                <i class="fas fa-info-circle mr-1"></i> Reporter Description
+                            </h6>
+                            <p class="text-muted small mb-4">
+                                The student repeatedly sent rude and discouraging messages.
+                            </p>
+
+                            <hr>
+
+                            <div class="d-flex justify-content-end">
+                                <button class="btn btn-success btn-sm mr-2" onclick="handleAction('approve')">
+                                    <i class="fas fa-check mr-1"></i> Approve & Escalate
+                                </button>
+
+                                <button class="btn btn-warning btn-sm mr-2" onclick="handleAction('warn')">
+                                    <i class="fas fa-user-shield mr-1"></i> Warn User
+                                </button>
+
+                                <button class="btn btn-danger btn-sm mr-2" onclick="handleAction('suspend')">
+                                    <i class="fas fa-ban mr-1"></i> Temporarily Suspend User
+                                </button>
+
+                                <button class="btn btn-secondary btn-sm" onclick="handleAction('dismiss')">
+                                    <i class="fas fa-times mr-1"></i> Dismiss Report
+                                </button>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+    <script src="../assets/vendor/jquery/jquery.min.js"></script>
+    <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="../assets/js/sb-admin-2.min.js"></script>
+    <script src="Handle-reports.js"></script>
+
+
+</body>
+</html>
