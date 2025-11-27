@@ -32,6 +32,7 @@ function validateText(inputId, msgId) {
     }
 }
 
+
 function validateID(inputId, msgId) {
     const msg = document.getElementById(msgId);
     const input = document.getElementById(inputId);
@@ -79,16 +80,16 @@ function validateSelect(selectId, msgId) {
     }
 }
 
-document.getElementById("reported-user-id")?.addEventListener("input", () => {
+document.getElementById("reported-user-id")?.addEventListener("blur", () => {
     reportedUserId = validateID("reported-user-id", "reported-user-id-msg");
 });
-document.getElementById("reported-post-id")?.addEventListener("input", () => {
+document.getElementById("reported-post-id")?.addEventListener("blur", () => {
     reportedPostId = validateID("reported-post-id", "reported-post-id-msg");
 });
-document.getElementById("reported-comment-id")?.addEventListener("input", () => {
+document.getElementById("reported-comment-id")?.addEventListener("blur", () => {
     reportedCommentId = validateID("reported-comment-id", "reported-comment-id-msg");
 });
-document.getElementById("reported-lesson-id")?.addEventListener("input", () => {
+document.getElementById("reported-lesson-id")?.addEventListener("blur", () => {
     reportedLessonId = validateID("reported-lesson-id", "reported-lesson-id-msg");
 });
 
@@ -96,7 +97,7 @@ document.getElementById("report-reason")?.addEventListener("change", () => {
     reportReason = validateSelect("report-reason", "reported-reason-msg");
 });
 
-document.getElementById("report-description")?.addEventListener("input", () => {
+document.getElementById("report-description")?.addEventListener("blur", () => {
     reportDescription = validateText("report-description", "reported-details-msg");
 });
 
@@ -130,7 +131,7 @@ if (form) {
             idValid = validateID("reported-lesson-id", "reported-lesson-id-msg");
         }
 
-        if (!typeValid || !idValid || !reasonValid ) {
+        if (!typeValid || !idValid || !reasonValid || !descValid) {
             alert("Please fill the correct ID and all required fields.");
             event.preventDefault();
         } else {
