@@ -1,3 +1,102 @@
+<?php
+require_once "../../../Controller/UserController.php";
+require_once "../../../Model/User.php";
+session_start();
+
+// Redirect if not logged in
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
+
+// Load session variables
+$userId      = $_SESSION['user_id'];
+$email       = $_SESSION['email'] ?? '';
+$password    = $_SESSION['password'] ?? '';
+$fname       = $_SESSION['fname'] ?? '';
+$lname       = $_SESSION['lname'] ?? '';
+$DOB         = $_SESSION['DOB'] ?? '';
+$role        = $_SESSION['role'] ?? '';
+$avatar      = $_SESSION['avatar'] ?? '';
+$description = $_SESSION['description'] ?? '';
+$star        = $_SESSION['starPoints'] ?? 0;
+
+$controller = new UserController();
+$errors = [];
+
+// Handle form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    // Get POST values
+    $newFname = trim($_POST['fname'] ?? '');
+    $newLname = trim($_POST['lname'] ?? '');
+    $newEmail = trim($_POST['email'] ?? '');
+    $newPassword = $_POST['password'] ?? '';
+    $newDescription = trim($_POST['description'] ?? '');
+    $user_id = $_POST['user_id'];
+
+    // Check email uniqueness if changed
+    if ($newEmail !== $email) {
+        $existing = $controller->getUserByEmail($newEmail);
+        if ($existing) {
+            $errors[] = "This email is already taken!";
+        }
+    }
+
+    // Handle avatar upload
+    $newAvatar = $avatar; // keep old avatar by default
+    if (!empty($_FILES['avatar']['name'])) {
+        $avatarName = time() . "_" . basename($_FILES['avatar']['name']);
+        $uploadPath = "../assets/img/userProfile/" . $avatarName;
+        if (move_uploaded_file($_FILES['avatar']['tmp_name'], $uploadPath)) {
+            $newAvatar = $avatarName;
+        } else {
+            $errors[] = "Failed to upload avatar!";
+        }
+    }
+
+    if (empty($errors)) {
+        // Hash password if changed, else keep old
+        $passwordToSave = !empty($newPassword) ? password_hash($newPassword, PASSWORD_DEFAULT) : $password;
+
+        // Create User object
+        $user = new User(
+            $userId,
+            $newEmail,
+            $passwordToSave,
+            $newFname,
+            $newLname,
+            $DOB,
+            $role,
+            $newAvatar,
+            $newDescription
+        );
+
+        // Update user in DB
+        $controller->updateUser($user, $user_id);
+
+        // Update session variables
+        $_SESSION['fname'] = $newFname;
+        $_SESSION['lname'] = $newLname;
+        $_SESSION['email'] = $newEmail;
+        $_SESSION['password'] = $passwordToSave;
+        $_SESSION['description'] = $newDescription;
+        $_SESSION['avatar'] = $newAvatar;
+
+        header('Location: viewProfile.php');
+        exit;
+    }
+}
+
+// Handle delete request
+if (isset($_GET['delete']) && $_GET['delete'] == 1) {
+    $controller->deleteUser($userId);
+    session_destroy();
+    header('Location: login.php');
+    exit;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,9 +104,7 @@
     <title>Starr - Edit Profile</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Google Web Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Inter:wght@600&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
 
     <!-- Icons -->
@@ -37,7 +134,6 @@
         }
     </style>
 </head>
-
 <body>
 <div class="container-xxl p-0" style="background-color: #fbefdf;">
 
@@ -62,8 +158,8 @@
                 <a href="contact.html" class="nav-item nav-link">Contact Us</a>
             </div>
 
-            <a href="profile.html" class="btn btn-primary rounded-pill px-3 d-none d-lg-block">
-                <i class="fa fa-user me-2"></i>My Profile
+            <a href="?delete=1" class="btn btn-danger rounded-pill px-3 d-none d-lg-block">
+                <i class="fa fa-user me-2"></i>Delete Account
             </a>
         </div>
     </nav>
@@ -76,11 +172,20 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb justify-content-center text-uppercase">
                     <li class="breadcrumb-item"><a class="text-white" href="index.html">Home</a></li>
-                    <li class="breadcrumb-item"><a class="text-white" href="profile.html">Profile</a></li>
+                    <li class="breadcrumb-item"><a class="text-white" href="viewProfile.php">Profile</a></li>
                     <li class="breadcrumb-item text-white active">Edit</li>
                 </ol>
             </nav>
         </div>
+    </div>
+
+    <!-- Error messages -->
+    <div class="container">
+        <?php if (!empty($errors)) : ?>
+            <div class="alert alert-danger">
+                <?php foreach ($errors as $err) echo htmlspecialchars($err) . "<br>"; ?>
+            </div>
+        <?php endif; ?>
     </div>
 
     <!-- Edit Profile Form -->
@@ -90,11 +195,13 @@
                 <div class="col-lg-8">
                     <div class="bg-light rounded p-5 wow fadeInUp">
 
-                        <form action="update-profile.php" method="POST" enctype="multipart/form-data">
+                        <form action="" method="POST" enctype="multipart/form-data">
+                            <input type="hidden" name="user_id" value="<?= htmlspecialchars($userId) ?>">
 
                             <!-- Avatar -->
                             <div class="text-center mb-5">
-                                <img src="../assets/img/team-2.jpg" id="avatarPreview" class="rounded-circle shadow avatar-preview" alt="Avatar">
+                                <img src="../assets/img/userProfile/<?= htmlspecialchars($avatar) ?>" 
+                                     id="avatarPreview" class="rounded-circle shadow avatar-preview" alt="Avatar">
                                 <div class="mt-3">
                                     <label class="btn btn-primary rounded-pill px-4">
                                         Change Avatar
@@ -104,40 +211,38 @@
                             </div>
 
                             <div class="row g-4">
-
                                 <!-- First & Last Name -->
                                 <div class="col-md-6">
                                     <label class="form-label">First Name</label>
-                                    <input type="text" name="first_name" class="form-control form-control-lg" value="Emma" >
+                                    <input type="text" name="fname" class="form-control form-control-lg" value="<?= htmlspecialchars($fname) ?>">
                                 </div>
-
                                 <div class="col-md-6">
                                     <label class="form-label">Last Name</label>
-                                    <input type="text" name="last_name" class="form-control form-control-lg" value="Johnson" >
+                                    <input type="text" name="lname" class="form-control form-control-lg" value="<?= htmlspecialchars($lname) ?>">
+                                </div>
+
+                                <!-- Email & Password -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" name="email" class="form-control form-control-lg" value="<?= htmlspecialchars($email) ?>">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Password</label>
+                                    <input type="password" name="password" class="form-control form-control-lg" placeholder="Enter new password to change">
                                 </div>
 
                                 <!-- About Me -->
                                 <div class="col-12">
                                     <label class="form-label">About Me</label>
-                                    <textarea name="description" class="form-control" rows="5" >
-Hi! I'm 5 years old and I love painting rainbows, playing with dinosaurs, and building the tallest block towers! My favorite color is orange and I'm always ready for new adventures
-                                    </textarea>
-                                </div>
-
-                                <!-- Star Points (hidden for kids) -->
-                                <div class="col-md-6 d-none" id="starPointsField">
-                                    <label class="form-label">Star Points</label>
-                                    <input type="number" name="starPoints" class="form-control form-control-lg" value="420" min="0">
+                                    <textarea name="description" class="form-control" rows="5"><?= htmlspecialchars($description) ?></textarea>
                                 </div>
 
                                 <!-- Buttons -->
                                 <div class="col-12 text-center mt-4">
                                     <button type="submit" class="btn btn-primary rounded-pill py-3 px-5">Save Changes</button>
-                                    <a href="profile.html" class="btn btn-outline-secondary rounded-pill py-3 px-5 ms-3">Cancel</a>
+                                    <a href="viewProfile.php" class="btn btn-outline-secondary rounded-pill py-3 px-5 ms-3">Cancel</a>
                                 </div>
-
                             </div>
-
                         </form>
 
                     </div>
@@ -146,49 +251,11 @@ Hi! I'm 5 years old and I love painting rainbows, playing with dinosaurs, and bu
         </div>
     </div>
 
-    <!-- Footer -->
-    <div class="container-fluid bg-dark text-white-50 footer pt-5 mt-5">
-        <div class="container py-5">
-            <div class="row g-5">
-
-                <div class="col-lg-3 col-md-6">
-                    <h3 class="text-white mb-4">Get In Touch</h3>
-                    <p class="mb-2"><i class="fa fa-map-marker-alt me-3"></i>123 Street, New York, USA</p>
-                    <p class="mb-2"><i class="fa fa-phone-alt me-3"></i>+012 345 67890</p>
-                    <p class="mb-2"><i class="fa fa-envelope me-3"></i>info@example.com</p>
-                </div>
-
-            </div>
-        </div>
-
-        <div class="container">
-            <div class="copyright">
-                <div class="row">
-                    <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
-                        &copy; <a class="border-bottom" href="#">Starr</a>, All Rights Reserved.
-                        Designed by <a class="border-bottom" href="#">HTML Codex</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Back to Top -->
-    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top">
-        <i class="bi bi-arrow-up"></i>
-    </a>
-
 </div>
 
 <!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="../assets/lib/wow/wow.min.js"></script>
-<script src="../assets/lib/easing/easing.min.js"></script>
-<script src="../assets/lib/waypoints/waypoints.min.js"></script>
-<script src="../assets/lib/owlcarousel/owl.carousel.min.js"></script>
-<script src="../assets/js/main.js"></script>
-
 <script>
 // Avatar live preview
 function previewAvatar(event) {
