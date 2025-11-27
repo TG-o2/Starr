@@ -19,7 +19,6 @@ private $reporterId;
 private $reportStatus;    
 private $evidencePath;    
 
-//add isArchived attribute?
 
     public function __construct(
     $reportId = null,

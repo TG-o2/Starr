@@ -159,7 +159,57 @@ class ReportController {
         return null;
     }
 }
+public function getReportsByReporter($userId)
+{
+    try {
+        $db = Config::getConnexion();
+        $query = $db->prepare("SELECT * FROM Report WHERE reporterId = :userId ORDER BY reportDate DESC");
+        $query->execute(['userId' => $userId]);
+        $results = $query->fetchAll(PDO::FETCH_ASSOC);
+
+        $reports = [];
+
+        foreach ($results as $row) {
+            $report = new Report();
+            $report->setReportId($row['reportId']);
+            $report->setReporterId($row['reporterId']);
+            $report->setReportType($row['reportType']);
+            $report->setReportReason($row['reportReason']);
+            $report->setReportStatus($row['reportStatus']);
+            $report->setReportDescription($row['reportDescription']);
+            $report->setReportedUserId($row['reportedUserId']);
+            $report->setReportedPostId($row['reportedPostId']);
+            $report->setReportedCommentId($row['reportedCommentId']);
+            $report->setReportedLessonId($row['reportedLessonId']);
+            $report->setReportDate($row['reportDate']);
+            $report->setEvidencePath($row['evidencePath']);
+
+            $reports[] = $report;
+        }
+
+        return $reports;
+
+    } catch (Exception $e) {
+        echo "Error: " . $e->getMessage();
+        return [];
+    }
+}
+public function updateReportStatus($reportId, $status) {
+    $db = Config::getConnexion();
+    $sql = "UPDATE Report SET reportStatus = :status WHERE reportId = :id";
+    try {
+        $query = $db->prepare($sql);
+        $query->execute([
+            'status' => $status,
+            'id' => $reportId
+        ]);
+    } catch (PDOException $e) {
+        die("Error updating report status: " . $e->getMessage());
+    }
+}
+
 
 }
+
 
 ?>
