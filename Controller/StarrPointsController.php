@@ -104,7 +104,7 @@ class StarrPointsController {
         }
     }
 
-    // ADD POINTS - Wrapper for adding points
+    /* ADD POINTS - Wrapper for adding points           //not gonna use these for now
     public function addPoints($starr_id, $amount) {
         $this->model->starr_id = $starr_id;
         if ($this->model->addPoints($amount)) {
@@ -134,7 +134,7 @@ class StarrPointsController {
                 'message' => 'Insufficient points or error occurred'
             ];
         }
-    }
+    }*/
 
     // UPDATE LOGIN STREAK
     public function updateLoginStreak($starr_id) {
