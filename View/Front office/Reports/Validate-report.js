@@ -1,13 +1,14 @@
 const form = document.getElementById("reportForm");
 
 // Validation flags
-var reportedUserId = false;
-var reportedPostId = false;
-var reportedCommentId = false;
-var reportedLessonId = false;
+let reportedUserId = false;
+let reportedPostId = false;
+let reportedCommentId = false;
+let reportedLessonId = false;
 
-var reportReason = false;
-var reportDescription = false;
+let reportReason = false;
+let reportDescription = false;
+let reportType = false;
 
 // Function to validate text fields (min length 3)
 function validateText(inputId, msgId) {
@@ -15,43 +16,49 @@ function validateText(inputId, msgId) {
     const input = document.getElementById(inputId);
     if (!input) return false;
 
-    if (input.value.trim().length >= 3) {
-        input.style.border = "2px solid #28a745"; 
-        msg.style.color = "green";
-        msg.innerText = "ID accepted";
+    const val = input.value.trim();
+    if (val.length >= 3) {
+        input.style.border = "2px solid #28a745";
+        if (msg) { msg.style.color = "green"; msg.innerText = "Accepted"; }
         return true;
-    } else if (input.value.trim().length > 0) {
-        input.style.border = "2px solid #dc3545"; 
-        msg.style.color = "red";
-        msg.innerText = "ID minimum length is 3 characters";
+    } else if (val.length > 0) {
+        input.style.border = "2px solid #dc3545";
+        if (msg) { msg.style.color = "red"; msg.innerText = "Minimum length is 3 characters"; }
         return false;
     } else {
         input.style.border = "";
+        if (msg) { msg.innerText = ""; }
         return false;
     }
 }
 
+
 function validateID(inputId, msgId) {
     const msg = document.getElementById(msgId);
     const input = document.getElementById(inputId);
-    if (isNaN(input.value) || input.value > 9999 || input.value < 0) {
-        input.style.border = "2px solid #dc3545"; 
-        msg.style.color = "red";
-        msg.innerText = "ID must be numeric";
+    if (!input) return false;
+
+    const val = input.value.trim();
+    if (val === "") {
+        input.style.border = "";
+        if (msg) { msg.innerText = ""; }
         return false;
     }
-    if (input.value.trim().length >= 3) {
-        input.style.border = "2px solid #28a745"; 
-        msg.style.color = "green";
-        msg.innerText = "ID accepted";
-        return true;
-    } else if (input.value.trim().length > 0) {
-        input.style.border = "2px solid #dc3545"; 
-        msg.style.color = "red";
-        msg.innerText = "ID minimum length is 3 characters";
+
+    const num = Number(val);
+    if (isNaN(num) || num < 0 || num > 9999) {
+        input.style.border = "2px solid #dc3545";
+        if (msg) { msg.style.color = "red"; msg.innerText = "ID must be numeric and between 0-9999"; }
         return false;
+    }
+
+    if (val.length >= 3) {
+        input.style.border = "2px solid #28a745";
+        if (msg) { msg.style.color = "green"; msg.innerText = "ID accepted"; }
+        return true;
     } else {
-        input.style.border = "";
+        input.style.border = "2px solid #dc3545";
+        if (msg) { msg.style.color = "red"; msg.innerText = "ID minimum length is 3 characters"; }
         return false;
     }
 }
@@ -64,29 +71,25 @@ function validateSelect(selectId, msgId) {
 
     if (select.value !== "" && select.value !== "default") {
         select.style.border = "2px solid #28a745"; // green
-        msg.style.color = "green";
-        msg.innerText = "accepted";
+        if (msg) { msg.style.color = "green"; msg.innerText = "accepted"; }
         return true;
     } else {
         select.style.border = "2px solid #dc3545"; // red
-        msg.style.color = "red";
-        msg.innerText = "Please select a reason";
+        if (msg) { msg.style.color = "red"; msg.innerText = "Please select a reason"; }
         return false;
     }
 }
 
-
-
-document.getElementById("reported-user-id")?.addEventListener("input", () => {
+document.getElementById("reported-user-id")?.addEventListener("blur", () => {
     reportedUserId = validateID("reported-user-id", "reported-user-id-msg");
 });
-document.getElementById("reported-post-id")?.addEventListener("input", () => {
+document.getElementById("reported-post-id")?.addEventListener("blur", () => {
     reportedPostId = validateID("reported-post-id", "reported-post-id-msg");
 });
-document.getElementById("reported-comment-id")?.addEventListener("input", () => {
+document.getElementById("reported-comment-id")?.addEventListener("blur", () => {
     reportedCommentId = validateID("reported-comment-id", "reported-comment-id-msg");
 });
-document.getElementById("reported-lesson-id")?.addEventListener("input", () => {
+document.getElementById("reported-lesson-id")?.addEventListener("blur", () => {
     reportedLessonId = validateID("reported-lesson-id", "reported-lesson-id-msg");
 });
 
@@ -94,7 +97,7 @@ document.getElementById("report-reason")?.addEventListener("change", () => {
     reportReason = validateSelect("report-reason", "reported-reason-msg");
 });
 
-document.getElementById("report-description")?.addEventListener("input", () => {
+document.getElementById("report-description")?.addEventListener("blur", () => {
     reportDescription = validateText("report-description", "reported-details-msg");
 });
 
@@ -102,30 +105,39 @@ document.getElementById("reportType")?.addEventListener("change", () => {
     reportType = validateSelect("reportType", "reported-type-msg");
 });
 
-form.addEventListener("submit", function(event) {
+if (form) {
+    form.addEventListener("submit", function(event) {
 
-    // Validate ID fields correctly
-    reportedUserId = validateID("reported-user-id", "reported-user-id-msg");
-    reportedPostId = validateID("reported-post-id", "reported-post-id-msg");
-    reportedCommentId = validateID("reported-comment-id", "reported-comment-id-msg");
-    reportedLessonId = validateID("reported-lesson-id", "reported-lesson-id-msg");
+        const type = document.getElementById("reportType")?.value || "";
 
-    // Validate reason + Type + description
-    reportReason = validateSelect("report-reason", "reported-reason-msg");
-    reportDescription = validateText("report-description", "reported-details-msg");
-    
-    // Check type validity
-    let typeValid = false;
-    if (reportType.value === "User" && reportedUserId) typeValid = true;
-    else if (reportType.value === "Post" && reportedPostId) typeValid = true;
-    else if (reportType.value === "Comment" && reportedCommentId) typeValid = true;
-    else if (reportType.value === "Lesson" && reportedLessonId) typeValid = true;
+        // Validate required fields
+        const reasonValid = validateSelect("report-reason", "reported-reason-msg");
+        const descValid   = validateText("report-description", "reported-details-msg");
+        const typeValid   = validateSelect("reportType", "reported-type-msg");
 
-    if (!reportReason || !reportDescription || !typeValid) {
-        alert("You must fill at least one ID, make sure it matches the Reported Type and complete all required fields.");
-        event.preventDefault();
-    }else{
-         alert("form is valid!");
-    }
-});
+        // Validate the correct ID depending on type
+        let idValid = false;
+
+        if (type === "user") {
+            idValid = validateID("reported-user-id", "reported-user-id-msg");
+        }
+        else if (type === "post") {
+            idValid = validateID("reported-post-id", "reported-post-id-msg");
+        }
+        else if (type === "comment") {
+            idValid = validateID("reported-comment-id", "reported-comment-id-msg");
+        }
+        else if (type === "lesson") {
+            idValid = validateID("reported-lesson-id", "reported-lesson-id-msg");
+        }
+
+        if (!typeValid || !idValid || !reasonValid || !descValid) {
+            alert("Please fill the correct ID and all required fields.");
+            event.preventDefault();
+        } else {
+            alert("Form is valid!");
+        }
+    });
+}
+
 
