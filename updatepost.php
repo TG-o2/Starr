@@ -1,10 +1,10 @@
 <?php
 
     require_once "../../Controller/PostController.php";
-    if(isset($_POST['id'])){
-    $post1=new post($_POST['id'],$_POST['subject'],$_POST['content'],5,"iheb",$_POST['category'],50,222,"2024-01-15 10:30:00");
+    if(isset($_POST['postid'])){
+    $post1=new post($_POST['postid'],$_POST['subject'],$_POST['content'],5,"iheb",$_POST['category'],50,222,"2024-01-15 10:30:00");
     $postcontroller1=new postcontroller();
-    $postcontroller1->updatepost($post1,$_POST['id']);
+    $postcontroller1->updatepost($post1,$_POST['postid']);
     }
 ?>
 <!DOCTYPE html>
@@ -111,27 +111,31 @@
                                     <div class="row g-3">
                                         <div class="col-sm-6">
                                             <div class="form-floating">
-                                                <input name="id" type="number" class="form-control border-0" id="gname" placeholder="bkbkb">
-                                                <label for="gname">id</label>
+                                                <input name="postid" type="number" class="form-control border-0" id="postid" placeholder="bkbkb">
+                                                <label for="postid">id</label>
+                                                <p id="errMes4"></p>
                                             </div>
                                         </div>
                                         <div class="col-sm-6">
                                             <div class="form-floating">
-                                                <input name="category" type="text" class="form-control border-0" id="gname" placeholder="bkbkb">
-                                                <label for="gname">category</label>
+                                                <input name="category" type="text" class="form-control border-0" id="category" placeholder="bkbkb">
+                                                <label for="category">category</label>
+                                                <p id="errMes"></p>
                                             </div>
                                         </div>
                                         <div class="col-sm-6">
                                             <div class="form-floating">
-                                                <input name="subject" type="text" class="form-control border-0" id="gmail" placeholder="Gurdian Email">
-                                                <label for="gmail">subject</label>
+                                                <input name="subject" type="text" class="form-control border-0" id="subject" placeholder="Gurdian Email">
+                                                <label for="subject">subject</label>
+                                                <p id="errMes2"></p>
                                             </div>
                                         </div>
                                         
                                         <div class="col-12">
                                             <div class="form-floating">
-                                                <textarea name="content" class="form-control border-0" placeholder="Leave a message here" id="message" style="height: 100px"></textarea>
-                                                <label for="message">content</label>
+                                                <textarea name="content" class="form-control border-0" placeholder="Leave a message here" id="content" style="height: 100px"></textarea>
+                                                <label for="content">content</label>
+                                                <p id="errMes3"></p>
                                             </div>
                                         </div>
                                         <div class="col-12">
@@ -245,6 +249,7 @@
     <script src="lib/easing/easing.min.js"></script>
     <script src="lib/waypoints/waypoints.min.js"></script>
     <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="inputpost.js"></script>
 
     <!-- Template Javascript -->
     <script src="js/main.js"></script>

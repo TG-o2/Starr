@@ -110,8 +110,9 @@
                                     <div class="row g-3">
                                         <div class="col-sm-6">
                                             <div class="form-floating">
-                                                <input name="id" type="number" class="form-control border-0" id="gname" placeholder="bkbkb">
-                                                <label for="gname">id of the post you want to delete</label>
+                                                <input name="id" type="number" class="form-control border-0" id="postid" placeholder="bkbkb">
+                                                <label for="postid">id of the post you want to delete</label>
+                                                <p id="errMes4"></p>
                                             </div>
                                         </div>
 
@@ -226,7 +227,7 @@
     <script src="lib/easing/easing.min.js"></script>
     <script src="lib/waypoints/waypoints.min.js"></script>
     <script src="lib/owlcarousel/owl.carousel.min.js"></script>
-
+    <script src="deletepost.js"></script>
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
 </body>
