@@ -1,5 +1,6 @@
 <?php
-require_once('Config.php');
+// Ensure correct absolute path for configuration when included from views
+require_once __DIR__ . '/Config.php';
 require_once __DIR__ . '/../Model/Comments.php';
 
 class CommentController {

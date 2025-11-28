@@ -1,6 +1,4 @@
 <?php
-
-// Déclaration de la classe config
 class config
 
 {   
@@ -16,10 +14,10 @@ class config
         if (!isset(self::$pdo)) {
 
             // Définition des paramètres de connexion
-            $servername = "localhost";  // Nom du serveur
-            $username = "root";         // Nom d'utilisateur de la base de données
-            $password = "";     // Mot de passe de la base de données
-            $dbname = "news";       // Nom de la base de données
+            $servername = "localhost";  
+            $username = "root";         
+            $password = "";     
+            $dbname = "news";       
 
             try {
 

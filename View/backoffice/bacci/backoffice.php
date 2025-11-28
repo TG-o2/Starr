@@ -89,10 +89,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['title']) && !isset($_
         }
     }
     
-    // Validate required fields
-    if (empty($title) || empty($content) || empty($category)) {
+    // Validate required fields (image mandatory)
+    if (empty($title) || empty($content) || empty($category) || empty($image)) {
         $alert_message = '<div class="alert alert-danger alert-dismissible fade show" role="alert">
-                Please fill in all required fields!
+                Please fill in all required fields and choose an image!
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -195,6 +195,59 @@ if (isset($_GET['delete_comment_id'])) {
     }
 }
 
+// Handle Platform Settings Update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_platform_settings'])) {
+    $settings = [
+        'site_name' => $_POST['site_name'],
+        'theme' => $_POST['theme'],
+        'primary_color' => $_POST['primary_color'],
+        'secondary_color' => $_POST['secondary_color'],
+        'font_family' => $_POST['font_family']
+    ];
+    
+    // Save settings to database or file
+    file_put_contents(__DIR__ . '/platform_settings.json', json_encode($settings));
+    
+    $alert_message = '<div class="alert alert-success alert-dismissible fade show" role="alert">
+            Platform settings updated successfully!
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>';
+}
+
+// Load platform settings with proper error handling
+$settings_file = __DIR__ . '/platform_settings.json';
+$platform_settings = [
+    'site_name' => 'News Platform',
+    'theme' => 'light',
+    'primary_color' => '#1a73e8',
+    'secondary_color' => '#34a853',
+    'font_family' => 'Roboto, Arial, sans-serif'
+];
+
+if (file_exists($settings_file)) {
+    $saved_settings = json_decode(file_get_contents($settings_file), true);
+    if ($saved_settings) {
+        $platform_settings = array_merge($platform_settings, $saved_settings);
+    }
+}
+
+// Ensure all required keys exist with safe array access
+$site_name = $platform_settings['site_name'] ?? 'News Platform';
+$theme = $platform_settings['theme'] ?? 'light';
+$primary_color = $platform_settings['primary_color'] ?? '#1a73e8';
+$secondary_color = $platform_settings['secondary_color'] ?? '#34a853';
+$font_family = $platform_settings['font_family'] ?? 'Roboto, Arial, sans-serif';
+
+// Auto theme detection for initial page load
+if ($theme === 'auto') {
+    // Check if user has a system preference for dark mode
+    if (isset($_SERVER['HTTP_SEC_CH_PREFERS_COLOR_SCHEME'])) {
+        $theme = $_SERVER['HTTP_SEC_CH_PREFERS_COLOR_SCHEME'] === 'dark' ? 'dark' : 'light';
+    }
+}
+
 // Get all news articles
 $allNews = $newsController->getAllNews();
 
@@ -216,15 +269,436 @@ if (isset($_GET['edit_id'])) {
     <title>SB Admin 2 - Articles Management</title>
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: <?php echo $primary_color; ?>;
+            --secondary-color: <?php echo $secondary_color; ?>;
+            --font-family: <?php echo $font_family; ?>;
+            --background-color: #ffffff;
+            --surface-color: #f8f9fa;
+            --text-primary: #202124;
+            --text-secondary: #5f6368;
+            --border-color: #dadce0;
+            --shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            --sidebar-bg: #4e73df;
+            --sidebar-text: #ffffff;
+            --topbar-bg: #ffffff;
+            --topbar-text: #5a5c69;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .dark-theme {
+            --primary-color: #8ab4f8;
+            --secondary-color: #81c995;
+            --background-color: #202124;
+            --surface-color: #292a2d;
+            --text-primary: #e8eaed;
+            --text-secondary: #9aa0a6;
+            --border-color: #3c4043;
+            --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.4);
+            --sidebar-bg: #1a1d23;
+            --sidebar-text: #e8eaed;
+            --topbar-bg: #292a2d;
+            --topbar-text: #e8eaed;
+        }
+
+        /* Apply theme to ALL elements */
+        .card, .alert, .article-card, .comments-container, .update-form, .edit-comment-form,
+        .sidebar, .topbar, .navbar, .modal-content, .dropdown-menu {
+            background-color: var(--surface-color) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        .card-header, .modal-header, .modal-footer {
+            background-color: var(--surface-color) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        .form-control, .form-select {
+            background-color: var(--background-color) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        .text-gray-800, .text-gray-600, .text-muted {
+            color: var(--text-secondary) !important;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color) !important;
+            border-color: var(--primary-color) !important;
+        }
+
+        .btn-outline-primary {
+            color: var(--primary-color) !important;
+            border-color: var(--primary-color) !important;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color) !important;
+            color: white !important;
+        }
+
+        /* Sidebar theming */
+        .sidebar {
+            background-color: var(--sidebar-bg) !important;
+        }
+
+        .sidebar .nav-item .nav-link {
+            color: var(--sidebar-text) !important;
+        }
+
+        .sidebar .nav-item .nav-link i {
+            color: var(--sidebar-text) !important;
+        }
+
+        .sidebar .sidebar-brand .sidebar-brand-text {
+            color: var(--sidebar-text) !important;
+        }
+
+        .sidebar .sidebar-brand .sidebar-brand-icon {
+            color: var(--sidebar-text) !important;
+        }
+
+        /* Topbar theming */
+        .navbar-light {
+            background-color: var(--topbar-bg) !important;
+        }
+
+        .navbar-light .navbar-nav .nav-link {
+            color: var(--topbar-text) !important;
+        }
+
+        .navbar-light .form-control {
+            background-color: var(--background-color) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        .navbar-light .input-group-text {
+            background-color: var(--primary-color) !important;
+            border-color: var(--primary-color) !important;
+            color: white !important;
+        }
+
+        /* Dropdown theming */
+        .dropdown-menu {
+            background-color: var(--surface-color) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        .dropdown-item {
+            color: var(--text-primary) !important;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--background-color) !important;
+            color: var(--text-primary) !important;
+        }
+
+        /* Footer theming */
+        .bg-white {
+            background-color: var(--surface-color) !important;
+        }
+
+        /* Customization Button */
+        .customize-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .customize-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+        }
+
+        /* Chrome-Style Customization Modal */
+        .chrome-customize-modal .modal-content {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.12);
+            border: none;
+        }
+
+        .chrome-customize-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 32px;
+            color: white;
+            text-align: center;
+        }
+
+        .chrome-customize-title {
+            font-size: 28px;
+            font-weight: 400;
+            margin: 0 0 8px 0;
+        }
+
+        .chrome-customize-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .chrome-customize-body {
+            padding: 0;
+            max-height: 65vh;
+            overflow-y: auto;
+        }
+
+        .chrome-customize-section {
+            padding: 32px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .chrome-customize-section:last-child {
+            border-bottom: none;
+        }
+
+        .chrome-section-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chrome-section-title i {
+            color: var(--primary-color);
+        }
+
+        .chrome-theme-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .chrome-theme-option {
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--surface-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chrome-theme-option:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .chrome-theme-option.active {
+            border-color: var(--primary-color);
+            background: var(--surface-color);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .chrome-theme-option.active::before {
+            content: '✓';
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 24px;
+            height: 24px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .chrome-theme-preview {
+            width: 100%;
+            height: 100px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .light-preview {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border: 1px solid #e8eaed;
+        }
+
+        .dark-preview {
+            background: linear-gradient(135deg, #202124 0%, #3c4043 100%);
+        }
+
+        .auto-preview {
+            background: linear-gradient(135deg, #ffffff 0%, #202124 100%);
+        }
+
+        .chrome-theme-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .chrome-theme-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .chrome-color-picker {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chrome-color-input {
+            width: 80px;
+            height: 50px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .chrome-color-label {
+            flex: 1;
+        }
+
+        .chrome-color-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .chrome-color-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .chrome-font-select {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 16px;
+            background: var(--background-color);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .chrome-font-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
+        }
+
+        .chrome-customize-footer {
+            padding: 24px 32px;
+            background: var(--surface-color);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chrome-btn {
+            padding: 12px 32px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chrome-btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .chrome-btn-secondary:hover {
+            background: var(--surface-color);
+            border-color: var(--primary-color);
+        }
+
+        .chrome-btn-primary {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 15px rgba(26, 115, 232, 0.3);
+        }
+
+        .chrome-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(26, 115, 232, 0.4);
+        }
+
+        .chrome-preview-card {
+            background: var(--surface-color);
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid var(--border-color);
+            margin-top: 16px;
+        }
+
+        .chrome-preview-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        .chrome-preview-text {
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Animation for theme changes */
+        .theme-transition * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        /* Your existing styles */
         .article-card {
-            background: white;
-            border-left: 4px solid #004085;
+            background: var(--surface-color);
+            border-left: 4px solid var(--primary-color);
             padding: 20px;
             margin-bottom: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow);
         }
         .article-card img {
             width: 120px;
@@ -234,53 +708,53 @@ if (isset($_GET['edit_id'])) {
             margin-right: 15px;
         }
         .article-card h5 {
-            color: #004085;
+            color: var(--primary-color);
             font-weight: 600;
             margin-bottom: 8px;
         }
         .comments-container {
-            background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
-            border-left: 4px solid #004085;
+            background: linear-gradient(135deg, var(--surface-color) 0%, var(--background-color) 100%);
+            border-left: 4px solid var(--primary-color);
             box-shadow: 0 4px 12px rgba(0, 64, 133, 0.15);
             margin-top: 20px;
             padding: 30px;
             border-radius: 8px;
         }
         .comments-container h5 {
-            color: #004085;
+            color: var(--primary-color);
             font-weight: 600;
         }
         .comments-preview-header {
             padding: 20px 0 0 0;
         }
         .comments-preview {
-            border: 2px solid #004085 !important;
-            color: #004085 !important;
+            border: 2px solid var(--primary-color) !important;
+            color: var(--primary-color) !important;
             font-weight: 600;
             transition: all 0.3s ease;
         }
         .comments-preview:hover {
-            background-color: #004085 !important;
+            background-color: var(--primary-color) !important;
             color: white !important;
         }
         .comment {
-            background: white;
+            background: var(--background-color);
             padding: 16px;
             border-radius: 8px;
-            border-left: 3px solid #ffc107;
+            border-left: 3px solid var(--secondary-color);
             box-shadow: 0 2px 6px rgba(0,0,0,0.08);
             margin-bottom: 16px;
         }
         .comment strong {
-            color: #004085;
+            color: var(--primary-color);
         }
         .comment div:last-child {
-            color: #333;
+            color: var(--text-primary);
             line-height: 1.6;
             margin-top: 8px;
         }
         .comment-form input {
-            border: 2px solid #004085 !important;
+            border: 2px solid var(--primary-color) !important;
             font-size: 16px;
         }
         .comment-form button {
@@ -290,10 +764,10 @@ if (isset($_GET['edit_id'])) {
         .comments-close {
             font-size: 20px;
             cursor: pointer;
-            color: #999;
+            color: var(--text-secondary);
         }
         .comments-close:hover {
-            color: #004085 !important;
+            color: var(--primary-color) !important;
         }
         .alert {
             border-radius: 8px;
@@ -303,10 +777,10 @@ if (isset($_GET['edit_id'])) {
             margin-top: 10px;
         }
         .update-form {
-            background: #f8f9fa;
+            background: var(--surface-color);
             padding: 20px;
             border-radius: 8px;
-            border-left: 4px solid #ffc107;
+            border-left: 4px solid var(--secondary-color);
             margin-top: 20px;
         }
         .comment-actions {
@@ -315,7 +789,7 @@ if (isset($_GET['edit_id'])) {
             gap: 5px;
         }
         .edit-comment-form {
-            background: #f8f9fa;
+            background: var(--surface-color);
             padding: 15px;
             border-radius: 8px;
             border-left: 4px solid #28a745;
@@ -331,17 +805,161 @@ if (isset($_GET['edit_id'])) {
             content: " *";
             color: red;
         }
+        
     </style>
+    <style>
+    .is-valid {
+        border: 2px solid #28a745 !important;
+    }
+
+    .is-invalid {
+        border: 2px solid #dc3545 !important;
+    }
+
+    .error-msg {
+        color: #dc3545;
+        font-size: 0.9rem;
+        display: none;
+    }
+</style>
+
 </head>
 
-<body id="page-top">
+<body id="page-top" class="theme-transition <?php echo $theme === 'dark' || ($theme === 'auto' && isset($_SERVER['HTTP_SEC_CH_PREFERS_COLOR_SCHEME']) && $_SERVER['HTTP_SEC_CH_PREFERS_COLOR_SCHEME'] === 'dark') ? 'dark-theme' : ''; ?>">
+    <!-- Customization Button -->
+    <button class="customize-btn" data-toggle="modal" data-target="#chromeCustomizeModal">
+        <i class="fas fa-palette"></i>
+    </button>
+
+    <!-- Chrome-Style Customization Modal -->
+    <div class="modal fade chrome-customize-modal" id="chromeCustomizeModal" tabindex="-1" role="dialog" aria-labelledby="chromeCustomizeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="chrome-customize-header">
+                    <h2 class="chrome-customize-title">Customize Your Platform</h2>
+                    <p class="chrome-customize-subtitle">Make it yours with beautiful themes and colors</p>
+                </div>
+                <form method="POST" id="chromeCustomizeForm">
+                    <input type="hidden" name="save_platform_settings" value="1">
+                    <div class="chrome-customize-body">
+                        <!-- Appearance Section -->
+                        <div class="chrome-customize-section">
+                            <h3 class="chrome-section-title">
+                                <i class="fas fa-paint-brush"></i>
+                                Appearance
+                            </h3>
+                            
+                            <div class="chrome-theme-options">
+                                <div class="chrome-theme-option <?php echo $theme === 'light' ? 'active' : ''; ?>" data-theme="light">
+                                    <div class="chrome-theme-preview light-preview"></div>
+                                    <div class="chrome-theme-name">Light Theme</div>
+                                    <div class="chrome-theme-description">Clean, bright interface perfect for daytime use</div>
+                                </div>
+                                
+                                <div class="chrome-theme-option <?php echo $theme === 'dark' ? 'active' : ''; ?>" data-theme="dark">
+                                    <div class="chrome-theme-preview dark-preview"></div>
+                                    <div class="chrome-theme-name">Dark Theme</div>
+                                    <div class="chrome-theme-description">Easy on the eyes, perfect for low-light environments</div>
+                                </div>
+                                
+                                <div class="chrome-theme-option <?php echo $theme === 'auto' ? 'active' : ''; ?>" data-theme="auto">
+                                    <div class="chrome-theme-preview auto-preview"></div>
+                                    <div class="chrome-theme-name">Auto Theme</div>
+                                    <div class="chrome-theme-description">Automatically switches based on your system preference</div>
+                                </div>
+                            </div>
+                            <input type="hidden" name="theme" id="selectedTheme" value="<?php echo $theme; ?>">
+                        </div>
+
+                        <!-- Colors Section -->
+                        <div class="chrome-customize-section">
+                            <h3 class="chrome-section-title">
+                                <i class="fas fa-fill-drip"></i>
+                                Colors
+                            </h3>
+                            
+                            <div class="chrome-color-picker">
+                                <div class="chrome-color-label">
+                                    <div class="chrome-color-title">Primary Color</div>
+                                    <div class="chrome-color-description">Main brand color used for buttons, links, and highlights</div>
+                                </div>
+                                <input type="color" class="chrome-color-input" name="primary_color" value="<?php echo $primary_color; ?>">
+                            </div>
+                            
+                            <div class="chrome-color-picker">
+                                <div class="chrome-color-label">
+                                    <div class="chrome-color-title">Secondary Color</div>
+                                    <div class="chrome-color-description">Accent color used for highlights, badges, and secondary elements</div>
+                                </div>
+                                <input type="color" class="chrome-color-input" name="secondary_color" value="<?php echo $secondary_color; ?>">
+                            </div>
+
+                            <div class="chrome-preview-card">
+                                <div class="chrome-preview-title">Preview</div>
+                                <div class="chrome-preview-text">This is how your platform will look with the selected colors. The changes will apply to the entire interface.</div>
+                            </div>
+                        </div>
+
+                        <!-- Fonts Section -->
+                        <div class="chrome-customize-section">
+                            <h3 class="chrome-section-title">
+                                <i class="fas fa-font"></i>
+                                Typography
+                            </h3>
+                            
+                            <div class="chrome-color-picker">
+                                <div class="chrome-color-label">
+                                    <div class="chrome-color-title">Font Family</div>
+                                    <div class="chrome-color-description">Choose the font that best represents your brand's personality</div>
+                                </div>
+                                <select class="chrome-font-select" name="font_family">
+                                    <option value="Roboto, Arial, sans-serif" <?php echo $font_family == 'Roboto, Arial, sans-serif' ? 'selected' : ''; ?>>Roboto - Modern & Clean</option>
+                                    <option value="'Google Sans', Arial, sans-serif" <?php echo $font_family == "'Google Sans', Arial, sans-serif" ? 'selected' : ''; ?>>Google Sans - Professional</option>
+                                    <option value="Arial, sans-serif" <?php echo $font_family == 'Arial, sans-serif' ? 'selected' : ''; ?>>Arial - Classic & Readable</option>
+                                    <option value="'Helvetica Neue', Helvetica, sans-serif" <?php echo $font_family == "'Helvetica Neue', Helvetica, sans-serif" ? 'selected' : ''; ?>>Helvetica - Elegant</option>
+                                    <option value="'Segoe UI', Tahoma, sans-serif" <?php echo $font_family == "'Segoe UI', Tahoma, sans-serif" ? 'selected' : ''; ?>>Segoe UI - Modern Windows</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Branding Section -->
+                        <div class="chrome-customize-section">
+                            <h3 class="chrome-section-title">
+                                <i class="fas fa-tag"></i>
+                                Branding
+                            </h3>
+                            
+                            <div class="chrome-color-picker">
+                                <div class="chrome-color-label">
+                                    <div class="chrome-color-title">Site Name</div>
+                                    <div class="chrome-color-description">The name that will be displayed throughout your platform</div>
+                                </div>
+                                <input type="text" class="chrome-font-select" name="site_name" value="<?php echo $site_name; ?>" placeholder="Enter your site name">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chrome-customize-footer">
+                        <button type="button" class="chrome-btn chrome-btn-secondary" data-dismiss="modal">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                        <button type="submit" class="chrome-btn chrome-btn-primary">
+                            <i class="fas fa-save"></i>
+                            Apply Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div id="wrapper">
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
                 <div class="sidebar-brand-icon rotate-n-15">
                     <i class="fas fa-laugh-wink"></i>
                 </div>
-                <div class="sidebar-brand-text mx-3">SB Admin <sup>2</sup></div>
+                <div class="sidebar-brand-text mx-3"><?php echo $site_name; ?> <sup>Admin</sup></div>
             </a>
             <hr class="sidebar-divider my-0">
             <li class="nav-item">
@@ -392,10 +1010,6 @@ if (isset($_GET['edit_id'])) {
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                                     Profile
                                 </a>
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Settings
-                                </a>
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
                                     <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
@@ -411,6 +1025,7 @@ if (isset($_GET['edit_id'])) {
                     
                     <?php if (isset($alert_message)) echo $alert_message; ?>
 
+                    <!-- Rest of your articles management code remains exactly the same -->
                     <!-- Add/Update Article Form -->
                     <div class="card shadow mb-4">
                         <div class="card-header py-3">
@@ -439,11 +1054,13 @@ if (isset($_GET['edit_id'])) {
                                     <div class="form-group required">
                                         <label for="editArticleTitle">Title</label>
                                         <input type="text" class="form-control" id="editArticleTitle" name="title" 
-                                               value="<?php echo htmlspecialchars($editNews['title']); ?>" required>
+                                               value="<?php echo htmlspecialchars($editNews['title']); ?>" >
+                                        <small class="form-text text-muted">Enter a descriptive title (min 3 characters).</small>
+                                        <small id="editArticleTitleError" class="error-msg">Title must be at least 3 characters.</small>
                                     </div>
                                     <div class="form-group required">
                                         <label for="editArticleCategory">Category</label>
-                                        <select class="form-control" id="editArticleCategory" name="category" required>
+                                        <select class="form-control" id="editArticleCategory" name="category" >
                                             <option value="">Select a category</option>
                                             <option value="community" <?php echo ($editNews['category'] == 'community') ? 'selected' : ''; ?>>Community</option>
                                             <option value="education" <?php echo ($editNews['category'] == 'education') ? 'selected' : ''; ?>>Education</option>
@@ -453,10 +1070,14 @@ if (isset($_GET['edit_id'])) {
                                             <option value="health" <?php echo ($editNews['category'] == 'health') ? 'selected' : ''; ?>>Health</option>
                                             <option value="business" <?php echo ($editNews['category'] == 'business') ? 'selected' : ''; ?>>Business</option>
                                         </select>
+                                        <small class="form-text text-muted">Choose the most relevant category.</small>
+                                        <small id="editArticleCategoryError" class="error-msg">Please select a category.</small>
                                     </div>
                                     <div class="form-group required">
                                         <label for="editArticleContent">Content</label>
                                         <textarea class="form-control" id="editArticleContent" name="content" rows="5" required><?php echo htmlspecialchars($editNews['content']); ?></textarea>
+                                        <small class="form-text text-muted">Write the article content (min 10 characters).</small>
+                                        <small id="editArticleContentError" class="error-msg">Content must be at least 10 characters.</small>
                                     </div>
                                     <button type="submit" class="btn btn-warning">Update Article</button>
                                     <a href="backoffice.php" class="btn btn-secondary">Cancel</a>
@@ -464,17 +1085,21 @@ if (isset($_GET['edit_id'])) {
                             <?php else: ?>
                                 <!-- Add Form -->
                                 <form method="POST" enctype="multipart/form-data" id="addArticleForm">
-                                    <div class="form-group">
+                                    <div class="form-group required">
                                         <label for="articleImage">Article Image</label>
                                         <input class="form-control" type="file" id="articleImage" name="image">
+                                        <small class="form-text text-muted">Select a clear image (JPG or PNG recommended).</small>
+                                        <small id="articleImageError" class="error-msg">Please choose an image.</small>
                                     </div>
                                     <div class="form-group required">
                                         <label for="articleTitle">Title</label>
-                                        <input type="text" class="form-control" id="articleTitle" name="title" placeholder="Enter article title" required>
+                                        <input type="text" class="form-control" id="articleTitle" name="title" placeholder="Enter article title" >
+                                        <small class="form-text text-muted">Enter a descriptive title (min 3 characters).</small>
+                                        <small id="articleTitleError" class="error-msg">Title must be at least 3 characters.</small>
                                     </div>
                                     <div class="form-group required">
                                         <label for="articleCategory">Category</label>
-                                        <select class="form-control" id="articleCategory" name="category" required>
+                                        <select class="form-control" id="articleCategory" name="category" >
                                             <option value="">Select a category</option>
                                             <option value="community">Community</option>
                                             <option value="education">Education</option>
@@ -484,10 +1109,14 @@ if (isset($_GET['edit_id'])) {
                                             <option value="health">Health</option>
                                             <option value="business">Business</option>
                                         </select>
+                                        <small class="form-text text-muted">Choose the most relevant category.</small>
+                                        <small id="articleCategoryError" class="error-msg">Please select a category.</small>
                                     </div>
                                     <div class="form-group required">
                                         <label for="articleContent">Content</label>
-                                        <textarea class="form-control" id="articleContent" name="content" rows="5" placeholder="Enter article content" required></textarea>
+                                        <textarea class="form-control" id="articleContent" name="content" rows="5" placeholder="Enter article content" ></textarea>
+                                        <small class="form-text text-muted">Write the article content (min 10 characters).</small>
+                                        <small id="articleContentError" class="error-msg">Content must be at least 10 characters.</small>
                                     </div>
                                     <button type="submit" class="btn btn-primary" id="addArticleBtn">Add Article</button>
                                 </form>
@@ -615,7 +1244,7 @@ if (isset($_GET['edit_id'])) {
                                             <form class="comment-form" method="POST">
                                                 <input type="hidden" name="news_id" value="<?php echo $news['newsid']; ?>">
                                                 <div class="input-group input-group-lg">
-                                                    <input type="text" class="form-control comment-input" name="comment_content" placeholder="Write a comment..." required>
+                                                    <input type="text" class="form-control comment-input" name="comment_content" placeholder="Write a comment..." >
                                                     <button class="btn btn-primary comment-submit" type="submit">
                                                         <i class="fas fa-paper-plane me-1"></i> Post Comment
                                                     </button>
@@ -628,7 +1257,7 @@ if (isset($_GET['edit_id'])) {
                                                     <input type="hidden" name="update_comment_id" id="edit_comment_id">
                                                     <div class="form-group">
                                                         <label for="edit_comment_content">Edit Comment</label>
-                                                        <textarea class="form-control" id="edit_comment_content" name="comment_content" rows="3" required></textarea>
+                                                        <textarea class="form-control" id="edit_comment_content" name="comment_content" rows="3" ></textarea>
                                                     </div>
                                                     <div class="d-flex gap-2">
                                                         <button type="submit" class="btn btn-success btn-sm">
@@ -663,7 +1292,7 @@ if (isset($_GET['edit_id'])) {
             <footer class="sticky-footer bg-white">
                 <div class="container my-auto">
                     <div class="copyright text-center my-auto">
-                        <span>Copyright &copy; Your Website 2024</span>
+                        <span>Copyright &copy; <?php echo $site_name; ?> <?php echo date('Y'); ?></span>
                     </div>
                 </div>
             </footer>
@@ -770,7 +1399,203 @@ if (isset($_GET['edit_id'])) {
                     bsAlert.close();
                 });
             }, 5000);
+
+            // Chrome-Style Customization Functionality
+            // Theme selection
+            document.querySelectorAll('.chrome-theme-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.chrome-theme-option').forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    const theme = this.dataset.theme;
+                    document.getElementById('selectedTheme').value = theme;
+                    
+                    // Apply theme preview immediately
+                    applyTheme(theme);
+                });
+            });
+
+            // Function to apply theme
+            function applyTheme(theme) {
+                const body = document.body;
+                
+                if (theme === 'dark') {
+                    body.classList.add('dark-theme');
+                    updateNavbarForDarkTheme();
+                } else if (theme === 'light') {
+                    body.classList.remove('dark-theme');
+                    updateNavbarForLightTheme();
+                } else if (theme === 'auto') {
+                    // Auto theme - detect system preference
+                    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                        body.classList.add('dark-theme');
+                        updateNavbarForDarkTheme();
+                    } else {
+                        body.classList.remove('dark-theme');
+                        updateNavbarForLightTheme();
+                    }
+                }
+                
+                // Update CSS variables for colors
+                updateCSSVariables();
+            }
+
+            // Function to update navbar for dark theme
+            function updateNavbarForDarkTheme() {
+                const sidebar = document.querySelector('.sidebar');
+                const topbar = document.querySelector('.navbar-light');
+                
+                if (sidebar) {
+                    sidebar.classList.remove('bg-gradient-primary');
+                    sidebar.classList.add('bg-dark');
+                }
+                
+                if (topbar) {
+                    topbar.classList.remove('bg-white');
+                    topbar.classList.add('bg-dark');
+                }
+            }
+
+            // Function to update navbar for light theme
+            function updateNavbarForLightTheme() {
+                const sidebar = document.querySelector('.sidebar');
+                const topbar = document.querySelector('.navbar-light');
+                
+                if (sidebar) {
+                    sidebar.classList.add('bg-gradient-primary');
+                    sidebar.classList.remove('bg-dark');
+                }
+                
+                if (topbar) {
+                    topbar.classList.add('bg-white');
+                    topbar.classList.remove('bg-dark');
+                }
+            }
+
+            // Function to update CSS variables when colors change
+            function updateCSSVariables() {
+                const primaryColor = document.querySelector('input[name="primary_color"]').value;
+                const secondaryColor = document.querySelector('input[name="secondary_color"]').value;
+                
+                document.documentElement.style.setProperty('--primary-color', primaryColor);
+                document.documentElement.style.setProperty('--secondary-color', secondaryColor);
+            }
+
+            // Color picker live preview
+            document.querySelectorAll('.chrome-color-input').forEach(input => {
+                input.addEventListener('input', function() {
+                    updateCSSVariables();
+                });
+            });
+
+            // Apply current theme on page load
+            const currentTheme = '<?php echo $theme; ?>';
+            applyTheme(currentTheme);
+
+            // Listen for system theme changes when auto theme is selected
+            if (window.matchMedia) {
+                const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+                mediaQuery.addEventListener('change', function(e) {
+                    const currentThemeSetting = document.getElementById('selectedTheme').value;
+                    if (currentThemeSetting === 'auto') {
+                        applyTheme('auto');
+                    }
+                });
+            }
         });
     </script>
+    <script>
+    // Validation helpers
+    function markValidity(input, ok) {
+        if (!input) return false;
+        const msg = document.getElementById(input.id + 'Error');
+        input.classList.toggle('is-valid', !!ok);
+        input.classList.toggle('is-invalid', !ok);
+        if (msg) msg.style.display = ok ? 'none' : 'block';
+        return !!ok;
+    }
+
+    function validateMinLength(input, min) {
+        if (!input) return false;
+        const val = (input.value || '').trim();
+        return markValidity(input, val.length >= min);
+    }
+
+    function validateSelectNotEmpty(selectEl) {
+        if (!selectEl) return false;
+        const ok = (selectEl.value || '').trim() !== '';
+        return markValidity(selectEl, ok);
+    }
+
+    function attachFieldValidation(input, min, evt) {
+        if (!input) return;
+        input.addEventListener(evt || 'input', () => validateMinLength(input, min));
+    }
+
+    function attachSelectValidation(selectEl) {
+        if (!selectEl) return;
+        selectEl.addEventListener('change', () => validateSelectNotEmpty(selectEl));
+    }
+
+    // Attach to Add form fields
+    const addTitle = document.getElementById('articleTitle');
+    const addCategory = document.getElementById('articleCategory');
+    const addContent = document.getElementById('articleContent');
+    const addImage = document.getElementById('articleImage');
+    attachFieldValidation(addTitle, 3);
+    attachSelectValidation(addCategory);
+    attachFieldValidation(addContent, 10);
+    if (addImage) {
+        addImage.addEventListener('change', () => {
+            const ok = addImage.files && addImage.files.length > 0;
+            markValidity(addImage, ok);
+        });
+    }
+
+    // Attach to Edit form fields
+    const editTitle = document.getElementById('editArticleTitle');
+    const editCategory = document.getElementById('editArticleCategory');
+    const editContent = document.getElementById('editArticleContent');
+    attachFieldValidation(editTitle, 3);
+    attachSelectValidation(editCategory);
+    attachFieldValidation(editContent, 10);
+
+    // Attach submit handlers for both forms if present
+    const addForm = document.getElementById('addArticleForm');
+    const editForm = document.querySelector('form input[name="update_id"]') ? document.querySelector('form input[name="update_id"]').closest('form') : null;
+
+    function validateForm(isEdit) {
+        if (isEdit) {
+            const okT = validateMinLength(editTitle, 3);
+            const okC = validateSelectNotEmpty(editCategory);
+            const okB = validateMinLength(editContent, 10);
+            return okT && okC && okB;
+        } else {
+            const okT = validateMinLength(addTitle, 3);
+            const okC = validateSelectNotEmpty(addCategory);
+            const okB = validateMinLength(addContent, 10);
+            const okImg = addImage ? markValidity(addImage, addImage.files && addImage.files.length > 0) : true;
+            return okT && okC && okB && okImg;
+        }
+    }
+
+    if (addForm) {
+        addForm.addEventListener('submit', (e) => {
+            if (!validateForm(false)) {
+                e.preventDefault();
+                alert('Please correct highlighted inputs');
+            }
+        });
+    }
+
+    if (editForm) {
+        editForm.addEventListener('submit', (e) => {
+            if (!validateForm(true)) {
+                e.preventDefault();
+                alert('Please correct highlighted inputs');
+            }
+        });
+    }
+    </script>
+
 </body>
 </html>
