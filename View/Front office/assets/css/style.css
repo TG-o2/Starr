@@ -513,3 +513,36 @@ h6,
     padding-right: 0;
     border-right: none;
 }
+.together{
+    display: flex;
+}
+
+.logo-hover {
+    transition: transform 0.5s ease, filter 0.5s ease;
+}
+
+.logo-hover:hover {
+    transform: scale(1.1) rotate(5deg); 
+    filter: brightness(1.2); 
+}
+
+.input-valid {
+    border: 3px solid #28a745 !important; /* Green */
+}
+
+.input-invalid {
+    border: 3px solid #dc3545 !important; /* Red */
+}
+
+.shake {
+    animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+}
+

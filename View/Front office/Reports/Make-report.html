@@ -98,40 +98,39 @@
             </div>
             <form id="reportForm" class="report-form" action="Make-report.php" method="POST" enctype="multipart/form-data">
                 <div class="mb-3">
-                    <label for="reportType" class="form-label">What are you reporting?</label>
-                    <select class="form-select" id="reportType" name="reportType" >
-                        <option value="" selected disabled>Choose type...</option>
+                    <label for="reportType" class="form-label" >What are you reporting?</label>
+                    <select class="form-select" id="reportType" name="report-type">
+                        <option selected="" disabled="">Choose type...</option>
                         <option value="user">User</option>
                         <option value="post">Post</option>
                         <option value="comment">Comment</option>
-                        <option value="lesson">Lesson</option>
+                        <option value="comment">Lesson</option>
                     </select>
-                    <span class="nav-item nav-link" id="reported-type-msg"></span> 
                 </div>
 
                 <div class="mb-3">
                     <label for="reported-user-id" class="form-label">Username ID</label>
                     <input type="text" id="reported-user-id" name="reported-user-id" class="form-control"  placeholder="Enter username " >
-                    <span class="nav-item nav-link" id="reported-user-id-msg"></span>
+                    <small id="reported-user-id-msg"></small>
                 </div>
                 <div class="mb-3">
                     <label for="reported-post-id" class="form-label">Post ID</label>
                     <input type="text" id="reported-post-id" name="reported-post-id" class="form-control" placeholder="Enter post link">
-                    <span class="nav-item nav-link" id="reported-post-id-msg"></span>
+                    <small id="reported-post-id-msg"></small>
                 </div>
                 <div class="mb-3">
                     <label for="reported-comment-id" class="form-label">Comment ID</label>
                     <input type="text" id="reported-comment-id" name="reported-comment-id" class="form-control"  placeholder="Enter comment link">
-                    <span class="nav-item nav-link" id="reported-comment-id-msg"></span>
+                    <small id="reported-comment-id-msg"></small>
                 </div>
                 <div class="mb-3">
                     <label for="reported-lesson-id" class="form-label">Lesson ID</label>
                     <input type="text" id="reported-lesson-id" name="reported-lesson-id" class="form-control" placeholder="Enter lesson link" >
-                    <span class="nav-item nav-link" id="reported-lesson-id-msg"></span>
+                    <small id="reported-lesson-id-msg"></small>
                 </div>
 
                 <div class="mb-3">
-                    <label for="report-reason" class="form-label">Reason for report</label>
+                    <label for="reason" class="form-label">Reason for report</label>
                         <select class="form-select" id="report-reason" name="report-reason">
                         <option selected="" disabled="">Choose reason...</option>
                         <option value="hate">Hate speech / Discrimination</option>
@@ -140,13 +139,13 @@
                         <option value="privacy">Privacy violation</option>
                         <option value="other">Other</option>
                     </select>
-                    <span class="nav-item nav-link" id="reported-reason-msg"></span>                    
+                    <small id="reported-reason-msg"></small>                    
                 </div>
 
                 <div class="mb-3">
                     <label for="details" class="form-label">Additional details</label>
                     <textarea class="form-control" id="report-description" name="report-description" rows="4" placeholder="Describe the issue in detail..."></textarea>
-                    <span class="nav-item nav-link" id="reported-details-msg"></span>    
+                    <small id="reported-deatails-msg"></small>    
                 </div>
 
                 <div class="mb-3">

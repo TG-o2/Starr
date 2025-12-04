@@ -1,165 +1,47 @@
 <?php
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
+session_start();
 
-// Include
-require_once __DIR__ . '/../config/config.php';
-require_once __DIR__ . '/../Model/Report.php';
+// Include 
+require_once 'config.php';
+require_once 'Report.php';
+require_once 'Controller.php';
 
+// testing data
+$_SESSION['user_id'] = 1;  // pretend reporter user
+$_POST['reportType'] = 'user';
+$_POST['reportedUserId'] = 2;
+$_POST['reportedPostId'] = null;
+$_POST['reportedCommentId'] = null;
+$_POST['reportedLessonId'] = null;
+$_POST['reportReason'] = 'spam';
+$_POST['reportDescription'] = 'This user is posting spam links.';
 
-class ReportController {
+// Create Report object
+$report = new Report();
+$report->setReporterId($_SESSION['user_id']);
+$report->setReportType($_POST['reportType']);
+$report->setReportedUserId($_POST['reportedUserId'] ?? null);
+$report->setReportedPostId($_POST['reportedPostId'] ?? null);
+$report->setReportedCommentId($_POST['reportedCommentId'] ?? null);
+$report->setReportedLessonId($_POST['reportedLessonId'] ?? null);
+$report->setReportReason($_POST['reportReason']);
+$report->setReportDescription($_POST['reportDescription']);
+$report->setReportDate(date('Y-m-d H:i:s'));
 
-    public function listReports() {
-        $sql = "SELECT * FROM Report";
-        $db = Config::getConnexion();
-        try {
-            $list = $db->query($sql);
-            return $list;
-        } catch (Exception $e) {
-            die('Error:' . $e->getMessage());
-        }
-    }
+// Display report info
+echo "<h2>Report Info</h2>";
+echo "Reporter ID: " . $report->getReporterId() . "<br>";
+echo "Report Type: " . $report->getReportType() . "<br>";
+echo "Reported User ID: " . $report->getReportedUserId() . "<br>";
+echo "Reported Post ID: " . $report->getReportedPostId() . "<br>";
+echo "Reported Comment ID: " . $report->getReportedCommentId() . "<br>";
+echo "Reported Lesson ID: " . $report->getReportedLessonId() . "<br>";
+echo "Report Reason: " . $report->getReportReason() . "<br>";
+echo "Report Description: " . $report->getReportDescription() . "<br>";
+echo "Report Date: " . $report->getReportDate() . "<br>";
 
-    public function deleteReport($reportId) {
-        $sql = "DELETE FROM Report WHERE reportId = :id";
-        $db = Config::getConnexion();
-        $req = $db->prepare($sql);
-        $req->bindValue(':id', $reportId);
-        try {
-            $req->execute();
-        } catch (Exception $e) {
-            die('Error:' . $e->getMessage());
-        }
-    }
-
-    public function addReport(Report $report) {
-        $sql = "INSERT INTO Report 
-                (reportType, reportedUserId, reportedPostId, reportedCommentId, reportedLessonId, 
-                 reportReason, reportDescription, reportDate, reporterId, reportStatus, evidencePath)
-                VALUES 
-                (:reportType, :reportedUserId, :reportedPostId, :reportedCommentId, :reportedLessonId,
-                 :reportReason, :reportDescription, :reportDate, :reporterId, :reportStatus, :evidencePath)";
-
-        $db = Config::getConnexion();
-
-        try {
-            $query = $db->prepare($sql);
-            $query->execute([
-                'reportType'        => $report->getReportType(),
-                'reportedUserId'    => $report->getReportedUserId(),
-                'reportedPostId'    => $report->getReportedPostId(),
-                'reportedCommentId' => $report->getReportedCommentId(),
-                'reportedLessonId'  => $report->getReportedLessonId(),
-                'reportReason'      => $report->getReportReason(),
-                'reportDescription' => $report->getReportDescription(),
-                'reportDate'        => $report->getReportDate(),
-                'reporterId'        => $report->getReporterId(),
-                'reportStatus'      => $report->getReportStatus(),
-                'evidencePath'      => $report->getEvidencePath()
-            ]);
-
-        } catch (Exception $e) {
-            echo 'Error: ' . $e->getMessage();
-        }
-    }
-
-    public function updateReport(Report $report, $id) {
-        try {
-            $db = Config::getConnexion();
-            $query = $db->prepare(
-                'UPDATE Report SET 
-                    reportType = :reportType,
-                    reportedUserId = :reportedUserId,
-                    reportedPostId = :reportedPostId,
-                    reportedCommentId = :reportedCommentId,
-                    reportedLessonId = :reportedLessonId,
-                    reportStatus = :reportStatus,
-                    reportReason = :reportReason,
-                    evidencePath = :evidencePath,
-                    reportDescription = :reportDescription,
-                    reportDate = :reportDate,
-                    reporterId = :reporterId
-                WHERE reportId = :id'
-            );
-
-            $query->execute([
-                'id'                => $id,
-                'reportType'        => $report->getReportType(),
-                'reportedUserId'    => $report->getReportedUserId(),
-                'reportedPostId'    => $report->getReportedPostId(),
-                'reportedCommentId' => $report->getReportedCommentId(),
-                'reportedLessonId'  => $report->getReportedLessonId(),
-                'reportStatus'      => $report->getReportStatus(),
-                'reportReason'      => $report->getReportReason(),
-                'evidencePath'      => $report->getEvidencePath(),
-                'reportDescription' => $report->getReportDescription(),
-                'reportDate'        => $report->getReportDate(),
-                'reporterId'        => $report->getReporterId()
-            ]);
-
-        } catch (PDOException $e) {
-            echo "Error: " . $e->getMessage();
-        }
-    }
-
-    public function showReport($id) {
-        $sql = "SELECT * FROM Report WHERE reportId = :id";
-        $db = Config::getConnexion();
-        $query = $db->prepare($sql);
-
-        try {
-            $query->execute(['id' => $id]);
-            return $query->fetch();
-        } catch (Exception $e) {
-            die('Error: ' . $e->getMessage());
-        }
-    }
-    public function getAllReports() {
-    $sql = "SELECT * FROM Report ORDER BY reportDate DESC";
-    $db = Config::getConnexion();
-
-    try {
-        $query = $db->prepare($sql);
-        $query->execute();
-        return $query->fetchAll(PDO::FETCH_ASSOC);
-    } catch (Exception $e) {
-        die('Error: ' . $e->getMessage());
-    }
-    }
-
-    public function getReportById($id) {
-    try {
-        $db = Config::getConnexion();
-        $query = $db->prepare("SELECT * FROM Report WHERE reportId = :id");
-        $query->execute(['id' => $id]);
-        $data = $query->fetch(PDO::FETCH_ASSOC);
-
-        if ($data) {
-            $report = new Report();
-            $report->setReportType($data['reportType']);
-            $report->setReportedUserId($data['reportedUserId']);
-            $report->setReportedPostId($data['reportedPostId']);
-            $report->setReportedCommentId($data['reportedCommentId']);
-            $report->setReportedLessonId($data['reportedLessonId']);
-            $report->setReportStatus($data['reportStatus']);
-            $report->setReportReason($data['reportReason']);
-            $report->setEvidencePath($data['evidencePath']);
-            $report->setReportDescription($data['reportDescription']);
-            $report->setReportDate($data['reportDate']);
-            $report->setReporterId($data['reporterId']);
-
-            return $report;
-        } else {
-            return null; // Report not found
-        }
-
-    } catch (PDOException $e) {
-        echo "Error: " . $e->getMessage();
-        return null;
-    }
-}
-
-}
-
+// Or, if you just want to see everything quickly:
+echo "<pre>";
+var_dump($report);
+echo "</pre>";
 ?>

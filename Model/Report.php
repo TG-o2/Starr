@@ -17,23 +17,9 @@ private $reportDate;
 
 private $reporterId;       
 private $reportStatus;    
-private $evidencePath;    
+private $evidencePath;     
 
-//add isArchived attribute?
-
-    public function __construct(
-    $reportId = null,
-    $reportType = "",
-    $reportedUserId = null,
-    $reportedPostId = null,
-    $reportedCommentId = null,
-    $reportedLessonId = null,
-    $reportReason = "",
-    $reportDescription = "",
-    $reportDate = "",
-    $reporterId = null,
-    $reportStatus = "pending",
-    $evidencePath = "")
+    public function __construct( $reportId = null, $reportType = null, $reportedUserId = null, $reportedPostId = null, $reportedCommentId = null, $reportedLessonId = null, $reportReason = null, $reportDescription = null, $reportDate = null, $reporterId = null, $reportStatus = null, $evidencePath = null)
     {
         $this->reportId = $reportId;
         $this->reportType = $reportType;
