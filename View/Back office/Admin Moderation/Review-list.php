@@ -6,21 +6,60 @@ require_once __DIR__ . '/../../../Model/Report.php';
 require_once __DIR__ . '/../../../Controller/ResponseController.php';
 require_once __DIR__ . '/../../../Model/Response.php';
 
-
+$adminId = "4"; 
 
 $reportController = new ReportController();
-$reports = $reportController->getAllReports();
-
 $responseController = new ResponseController();
+$search = $_GET['search'] ?? null;
+$status = $_GET['status'] ?? null;
+$reporter = $_GET['reporter'] ?? null;
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+$reports = $reportController->filterReports($search, $status, $reporter);
+
+// Filter medium/high severity reports first
+$severityReports = array_filter($reports, function($r){
+    return in_array(strtolower($r['severity']), ['warning', 'critical']);
+});
+
+// Now remove duplicates per entity, keeping highest severity
+$seen = [];
+$uniqueSeverityReports = [];
+
+foreach ($severityReports as $sr) {
+    $entityKey = null;
+
+    if (!empty($sr['reportedPostId'])) $entityKey = 'post_'.$sr['reportedPostId'];
+    elseif (!empty($sr['reportedUserId'])) $entityKey = 'user_'.$sr['reportedUserId'];
+    elseif (!empty($sr['reportedCommentId'])) $entityKey = 'comment_'.$sr['reportedCommentId'];
+    elseif (!empty($sr['reportedLessonId'])) $entityKey = 'lesson_'.$sr['reportedLessonId'];
+
+    if (!$entityKey) continue;
+
+    if (!isset($seen[$entityKey])) {
+        $seen[$entityKey] = strtolower($sr['severity']);
+        $uniqueSeverityReports[] = $sr;
+    } else {
+        $currentSeverity = $seen[$entityKey];
+        $newSeverity = strtolower($sr['severity']);
+        if ($newSeverity === 'critical' && $currentSeverity !== 'critical') {
+            foreach ($uniqueSeverityReports as $k => $r) {
+                if (
+                    (!empty($r['reportedPostId']) && $r['reportedPostId'] === $sr['reportedPostId']) ||
+                    (!empty($r['reportedUserId']) && $r['reportedUserId'] === $sr['reportedUserId']) ||
+                    (!empty($r['reportedCommentId']) && $r['reportedCommentId'] === $sr['reportedCommentId']) ||
+                    (!empty($r['reportedLessonId']) && $r['reportedLessonId'] === $sr['reportedLessonId'])
+                ) {
+                    $uniqueSeverityReports[$k] = $sr;
+                    $seen[$entityKey] = 'critical';
+                    break;
+                }
+            }
+        }
+    }
 }
 
-
-$adminId= "3";
-
-
+// Now $severityReports is safe and contains only unique medium/high severity reports
+$severityReports = $uniqueSeverityReports;
 ?>
 
 
@@ -44,6 +83,11 @@ $adminId= "3";
     /* Fix typo */
     .chart-area { height: auto !important; min-height: 60px; }
     #review-list { max-height: none; overflow: visible; }
+    /* Search / filter bar */
+    .filter-bar { display:flex; gap:12px; align-items:center; margin-bottom:18px; }
+    .filter-bar .form-control, .filter-bar .form-select { min-width:0; }
+    .filter-card { background:#f8f9fc; padding:12px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.04); }
+    .filter-count { font-weight:600; color:#6c757d; }
 </style>
 
 <script src="https://kit.fontawesome.com/9d17856d97.js" crossorigin="anonymous"></script>
@@ -94,23 +138,57 @@ $adminId= "3";
                         </div>
                         <div class="card-body">
                             <div class="chart-area">
+                               
+
+                                <div class="filter-card mb-3">
+                                    <form method="get" class="filter-bar" id="filter-form">
+                                        <input id="report-search" name="search" value="<?= isset(
+                                            $search) ? htmlspecialchars($search) : '' ?>" type="search" class="form-control" placeholder="Search reports..." />
+                                        <input id="report-reporter" name="reporter" value="<?= isset($reporter) ? htmlspecialchars($reporter) : '' ?>" type="text" class="form-control" placeholder="Reporter ID" />
+                                        <select id="report-status-filter" name="status" class="form-control" aria-label="Filter by status">
+                                            <option value="">All statuses</option>
+                                            <option <?= ($status === 'Pending') ? 'selected' : '' ?>>Pending</option>
+                                            <option <?= ($status === 'In Progress') ? 'selected' : '' ?>>In Progress</option>
+                                            <option <?= ($status === 'Completed') ? 'selected' : '' ?>>Completed</option>
+                                            <option <?= ($status === 'Rejected') ? 'selected' : '' ?>>Rejected</option>
+                                            <option <?= ($status === 'Need Info') ? 'selected' : '' ?>>Need Info</option>
+                                            <option <?= ($status === 'Escalated') ? 'selected' : '' ?>>Escalated</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-primary">Apply</button>
+                                        <button id="clear-filters" class="btn btn-light" type="button">Clear</button>
+                                        <div class="ms-auto filter-count" id="filter-count">&nbsp;</div>
+                                    </form>
+                                </div>
+
                                 <div class="list-group" id="review-list">
                                     <?php if (!empty($reports)): ?>
                                         <?php foreach ($reports as $r): ?>
                                             
 
-                                            <div class="list-group-item list-group-item-action flex-column align-items-start mb-3 border-left-danger shadow-sm">
+                                                <div class="list-group-item list-group-item-action flex-column align-items-start mb-3 border-left-danger shadow-sm"
+                                                    data-status="<?= htmlspecialchars($r['reportStatus']) ?>"
+                                                    data-reporter="<?= htmlspecialchars($r['reporterId']) ?>"
+                                                    data-reason="<?= htmlspecialchars($r['reportReason']) ?>"
+                                                    data-reportid="<?= htmlspecialchars($r['reportId']) ?>">
+                                                    
                                                 <div class="d-flex w-100 justify-content-between align-items-center">
                                                     <h6 class="mb-1 text-danger font-weight-bold">
                                                         <i class="fas fa-user-shield mr-1"></i>
                                                         Report by: <span class="text-dark">@<?= $r['reporterId'] ?></span>
                                                     </h6>
+                                                    <?php if ($r['isDangerZone'] ?? false): ?>
+                                                        <span class="badge badge-danger p-2 mt-1">
+                                                            <i class="fas fa-exclamation-triangle"></i> Danger Zone
+                                                        </span>
+                                                    <?php endif; ?>
                                                     <?php
                                                         $statusClass = match($r['reportStatus']) {
-                                                            "Pending" => "badge-danger",
-                                                            "Completed" => "badge-success",
-                                                            "In Progress" => "badge-primary",
-                                                            default => "badge-secondary",
+                                                            "pending" => "badge-secondary",
+                                                            "Pending" => "badge-secondary",
+                                                            "reviewed" => "badge-success",
+                                                            "in progress" => "badge-primary",
+                                                            "need info" => "badge-primary",
+                                                            default => "badge-danger",
                                                         };
                                                     ?>
                                                     <span class="badge <?= $statusClass ?> p-2"><?= $r['reportStatus'] ?></span>
@@ -119,6 +197,7 @@ $adminId= "3";
                                                 <?php if ($r['reportedUserId']): ?>
                                                     <p class="small mb-1"><strong>Reported User:</strong> <?= $r['reportedUserId'] ?></p>
                                                 <?php endif; ?>
+                                                
                                                 <?php if ($r['reportedPostId']): ?>
                                                     <p class="small mb-1"><strong>Reported Post ID:</strong> <?= $r['reportedPostId'] ?></p>
                                                 <?php endif; ?>
@@ -152,9 +231,13 @@ $adminId= "3";
                                                         $allowUserReply = 0;
 
                                                         if (!empty($latestResponse)) {
-                                                            // Assume last response in array is the latest
-                                                            $lastResp = end($latestResponse);
-                                                            $allowUserReply = $lastResp->getAllowUserReply();
+                                                            // If ANY previous response has allowed user replies, keep the flag
+                                                            foreach ($latestResponse as $respItem) {
+                                                                if ((int)$respItem->getAllowUserReply() === 1) {
+                                                                    $allowUserReply = 1;
+                                                                    break;
+                                                                }
+                                                            }
                                                         }
 
                                                         // Show handle button if report in progress OR user is allowed to reply
@@ -184,35 +267,36 @@ $adminId= "3";
                                                     // Try several common controller create method names. Replace with whatever you have.
                                                     if (method_exists($responseController, 'create')) {
                                                         $responseController->create([
-                                                            'reportId'    => $r['reportId'],
+                                                            'reportId'     => $r['reportId'],
                                                             'responderId' => $adminId,
-                                                            'message'     => $defaultMessage,
-                                                            'created_at'  => date('Y-m-d H:i:s'),
+                                                            'message'      => $defaultMessage,
+                                                            'created_at'   => date('Y-m-d H:i:s'),
                                                         ]);
                                                     } elseif (method_exists($responseController, 'createResponse')) {
                                                         $responseController->createResponse($r['reportId'], $adminId, $defaultMessage);
                                                     } elseif (method_exists($responseController, 'add')) {
                                                         $responseController->add([
-                                                            'reportId'    => $r['reportId'],
+                                                            'reportId'     => $r['reportId'],
                                                             'responderId' => $adminId,
-                                                            'message'     => $defaultMessage,
-                                                            'created_at'  => date('Y-m-d H:i:s'),
+                                                            'message'      => $defaultMessage,
+                                                            'created_at'   => date('Y-m-d H:i:s'),
                                                         ]);
                                                     } else {
                                                         $db = Config::getConnexion();
-                                                        $stmt = $db->prepare("
-                                                            INSERT INTO responses (reportID, reporter_id, response_text, response_date, report_status, action_taken)
-                                                            VALUES (:reportID, :reporter_id, :response_text, :response_date, :report_status, :action_taken)
-                                                        ");
-
+                                                        $stmt = $db->prepare($sql = "INSERT INTO responses 
+                            (reportId, responderId, responseText, responseDate, status, actionTaken, allowUserReply)
+                            VALUES 
+                            (:reportId, :responderId, :responseText, :responseDate, :status, :actionTaken, :allowUserReply)");
                                                         $stmt->execute([
-                                                            ':reportID'      => $r['reportId'],
-                                                            ':reporter_id'   => $adminId,
-                                                            ':response_text' => $defaultMessage,
-                                                            ':response_date' => date('Y-m-d H:i:s'),
-                                                            ':report_status' => 'In Progress',
-                                                            ':action_taken'  => 'None'
+                                                            ':reportId'       => $r['reportId'],
+                                                            ':responderId'    => $adminId,
+                                                            ':responseText'   => $defaultMessage,
+                                                            ':responseDate'   => date('Y-m-d H:i:s'),
+                                                            ':status'         => 'In Progress',
+                                                            ':actionTaken'    => 'None',
+                                                            ':allowUserReply' => 0
                                                         ]);
+
 
                                                     }
 
@@ -237,8 +321,45 @@ $adminId= "3";
                     </div>
                 </div>
                 <div class="col-xl-4 col-lg-5">
-                    <!-- Optional right column -->
+    <!-- Severity Sidebar -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-primary text-white">
+            <h6 class="m-0 font-weight-bold">Severity Alerts</h6>
+        </div>
+        <div class="card-body" id="severity-list">
+            <?php if (!empty($severityReports)): ?>
+    <?php foreach ($severityReports as $sr): ?>
+        <?php 
+            $isHigh = strtolower($sr['severity']) === 'critical';
+            $borderColor = $isHigh ? 'border-left-danger' : 'border-left-warning';
+            $bgColor = $isHigh ? 'bg-danger text-white' : 'bg-warning text-dark';
+            $icon = $isHigh ? 'fas fa-exclamation-triangle' : 'fas fa-exclamation-circle';
+            $sevLabel = $isHigh ? 'High' : 'Medium';
+
+            // Icon color override
+            $iconColor = $isHigh ? '#dc3545' : '#fdc314ff'; // red or orange
+        ?>
+        <div class="card mb-3 <?= $borderColor ?> shadow-sm" style="border-left-width: 6px;">
+            <div class="card-body d-flex align-items-start">
+                <div class="me-3">
+                    <i class="<?= $icon ?> fa-2x" style="color: <?= $iconColor ?>;"></i>
                 </div>
+                <div>
+                    <h6 class="mb-1"><?= $sevLabel ?> Severity</h6>
+                    <p class="small mb-1"><strong>Report ID:</strong> <?= $sr['reportId'] ?></p>
+                    <p class="small mb-1"><strong>Reason:</strong> <?= $sr['reportReason'] ?></p>
+                    <p class="small mb-0"><strong>Date:</strong> <?= $sr['reportDate'] ?></p>
+                </div>
+            </div>
+        </div>
+    <?php endforeach; ?>
+<?php endif; ?>
+
+        </div>
+    </div>
+</div>
+
+
             </div>
         </div>
 
@@ -271,6 +392,77 @@ $adminId= "3";
 <script src="../assets/js/sb-admin-2.min.js"></script>
 
 <script src="../assets/vendor/chart.js/Chart.min.js"></script>
+
+<script>
+    (function () {
+        const search = document.getElementById('report-search');
+        const status = document.getElementById('report-status-filter');
+        const clearBtn = document.getElementById('clear-filters');
+        const reporterInput = document.getElementById('report-reporter');
+        const list = document.getElementById('review-list');
+        const countEl = document.getElementById('filter-count');
+
+        function normalize(s){ return (s||'').toString().toLowerCase(); }
+
+        function updateCount(visible, total){
+            countEl.textContent = visible + ' / ' + total + ' shown';
+        }
+
+        function filter() {
+            const q = normalize(search.value);
+            const st = normalize(status.value);
+            const items = Array.from(list.querySelectorAll('.list-group-item'));
+            let visible = 0;
+            items.forEach(item => {
+                const itemStatus = normalize(item.dataset.status);
+                const reporter = normalize(item.dataset.reporter);
+                const reason = normalize(item.dataset.reason);
+                const id = normalize(item.dataset.reportid);
+
+                let matches = true;
+                if (st && itemStatus !== st) matches = false;
+                if (q) {
+                    if (!(reporter.includes(q) || reason.includes(q) || id.includes(q) || item.textContent.toLowerCase().includes(q))) {
+                        matches = false;
+                    }
+                }
+
+                // If reporter filter field is set, require it to match (contains)
+                const repFilter = normalize(reporterInput ? reporterInput.value : '');
+                if (repFilter) {
+                    if (!reporter.includes(repFilter)) {
+                        matches = false;
+                    }
+                }
+
+                if (matches) {
+                    item.style.display = '';
+                    visible++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            updateCount(visible, items.length);
+        }
+
+        if (search) search.addEventListener('input', filter);
+        if (status) status.addEventListener('change', filter);
+        if (clearBtn) clearBtn.addEventListener('click', function(e){
+            e.preventDefault();
+            search.value = '';
+            status.value = '';
+            if (reporterInput) reporterInput.value = '';
+            filter();
+        });
+
+        // initial run
+        document.addEventListener('DOMContentLoaded', function(){ filter(); });
+        filter();
+    })();
+</script>
+
+
+
 
 </body>
 </html>

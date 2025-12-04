@@ -12,7 +12,7 @@ $adminId = $_SESSION['id'] ?? 3;
 // Get POST data
 $reportId = $_POST['reportId'] ?? null;
 $action = $_POST['action'] ?? null;
-$customMessage = $_POST['message'] ?? null;
+$customMessage = $_POST['adminMessage'] ?? null;
 
 if (!$reportId || !$action) {
     die("Report ID and action are required.");
@@ -21,17 +21,9 @@ if (!$reportId || !$action) {
 $responseController = new ResponseController();
 $reportController = new ReportController();
 
-// Get all responses for this report
-$responses = $responseController->getResponsesByReportId($reportId);
-
-// Find the "Picked Up" response, if any
-$pickedUpResponse = null;
-foreach ($responses as $resp) {
-    if ($resp->getActionTaken() === 'Picked Up') {
-        $pickedUpResponse = $resp;
-        break;
-    }
-}
+// Sanitize inputs
+$reportId = intval($reportId);
+$action = trim($action);
 
 // Set default message, status, allow_user_reply based on action
 switch ($action) {
@@ -68,34 +60,21 @@ switch ($action) {
 }
 
 // Use admin message if provided
-$messageText = $customMessage ?: $defaultMessage;
+$messageText = trim($customMessage ?: $defaultMessage);
 
-if ($pickedUpResponse) {
-    // Update existing "Picked Up" response
-    $pickedUpResponse->setActionTaken($actionTaken);
-    $pickedUpResponse->setResponseText($messageText);
-    $pickedUpResponse->setStatus($status);
-    $pickedUpResponse->setAllowUserReply($allowReply);
+try {
+    // Centralized method will update an existing "Picked Up" response or create one.
+    $responseController->updatePickedUpResponse($reportId, $actionTaken, $status, $allowReply, $messageText, $adminId);
 
-    $responseController->updateResponse($pickedUpResponse, $pickedUpResponse->getResponseId());
-} else {
-    // No picked up response? Create new response
-    $newResponse = new Response();
-    $newResponse->setReportId($reportId);
-    $newResponse->setResponderId($adminId);
-    $newResponse->setResponseDate(date('Y-m-d H:i:s'));
-    $newResponse->setActionTaken($actionTaken);
-    $newResponse->setResponseText($messageText);
-    $newResponse->setStatus($status);
-    $newResponse->setAllowUserReply($allowReply);
+    // Update report status
+    $reportController->updateReportStatus($reportId, $status);
 
-    $responseController->addResponse($newResponse);
+    // Redirect back (use safe encoding). Use `result` to avoid colliding with the `status` filter on Review-list.php
+    header('Location: Review-list.php?reportId=' . urlencode((string)$reportId) . '&result=success');
+    exit;
+} catch (Exception $e) {
+    error_log('Process-report-action error: ' . $e->getMessage());
+    header('Location: Review-list.php?reportId=' . urlencode((string)$reportId) . '&result=error');
+    exit;
 }
-
-// Update report status
-$reportController->updateReportStatus($reportId, $status);
-
-// Redirect back
-header("Location: Review-list.php?reportId=$reportId&status=success");
-exit;
 ?>

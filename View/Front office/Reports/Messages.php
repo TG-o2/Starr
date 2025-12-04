@@ -5,23 +5,40 @@ require_once __DIR__ . '/../../../Controller/ResponseController.php';
 require_once __DIR__ . '/../../../Model/Report.php';
 require_once __DIR__ . '/../../../Model/Response.php';
 
-$adminId = "3"; 
+// Use session user id if available, fallback to 10 for dev/testing
+$userId = $_SESSION['id'] ?? 5;
+$adminId = $_SESSION['admin_id'] ?? 4;
 
-$reportcontroller = new ReportController();
-$responsecontroller = new ResponseController();
+$reportController = new ReportController();
+$responseController = new ResponseController();
 
-$reports = $reportcontroller->getReportsByReporter("47"); // Replace with $userId
+// Fetch all reports for the user
+$reports = $reportController->getReportsByReporter($userId);
 
-if (!$reports || count($reports) == 0) {
-    $error = "You have no reports yet.";
-    $report = null;
-    $response = null;
-} else {
-    $report = $reports[0]; // latest report
-    $responses = $responsecontroller->getResponsesByReportId($report->getReportId());
+// Determine selected report
+$selectedReportId = isset($_GET['reportId']) ? intval($_GET['reportId']) : null;
+$selectedReport = null;
+
+if ($selectedReportId) {
+    foreach ($reports as $r) {
+        if ($r->getReportId() == $selectedReportId) {
+            $selectedReport = $r;
+            break;
+        }
+    }
 }
 
+// Default: select the latest report if none selected
+if (!$selectedReport && !empty($reports)) {
+    $selectedReport = $reports[0];
+}
+
+$responses = [];
+if ($selectedReport) {
+    $responses = $responseController->getResponsesByReportId($selectedReport->getReportId());
+}
 ?>
+
 
 
 <!DOCTYPE html>
@@ -93,6 +110,10 @@ if (!$reports || count($reports) == 0) {
     .reply-section input[type="file"] { margin-top: 10px; }  
     .btn-send { background-color: #FEA116; color: #fff; font-weight: 600; border-radius: 12px; margin-top: 10px; }  
     .btn-send:hover { background-color: #e28e0e; }  
+    .badge-custom {
+    background-color: #31ace5ff; /* your orange */
+    color: #ffffffff;               /* text color */
+}
 
     h1 { text-align: center; margin-bottom: 30px; color: #333; }  
     h5 { margin-top: 15px; }  
@@ -114,7 +135,7 @@ if (!$reports || count($reports) == 0) {
 
         <!-- Navbar Start -->
         <nav class="navbar navbar-expand-lg bg-white navbar-light sticky-top px-4 px-lg-5 py-lg-0">
-            <a href="index.html" class="navbar-brand">
+            <a class="navbar-brand">
                 <h1 class="m-0 text-primary"> <img src="../logo.jpeg" alt="Starr Logo" style="height: 60px; vertical-align: middle; margin-right: 8px;">
             Starr</h1>
             </a>
@@ -130,7 +151,7 @@ if (!$reports || count($reports) == 0) {
                         <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Report</a>
                         <div class="dropdown-menu rounded-0 rounded-bottom border-0 m-0">
                             <a href="Make-report.html" class="dropdown-item">Make a report</a>
-                            <a href="Messages.html" class="dropdown-item active">Check response</a>
+                            <a href="Messages.php" class="dropdown-item active">Check response</a>
                         </div>
                     </div>
                     <a href="contact.html" class="nav-item nav-link">Contact Us</a>
@@ -143,103 +164,130 @@ if (!$reports || count($reports) == 0) {
 
 
         <!-- Messages start -->
-        <div class="container-xxl py-5 wow fadeInUp" data-wow-delay="0.1s">
-            <div class="container text-center">
-                <div class="row justify-content-center">
-                    <div class="col-lg-6">
-                        <i class="fa-solid fa-envelope-open fa-2x"></i>
-                       
-                        <h1 class="mb-4">Latest response from report</h1>
+       <div class="container report-container">
+
+    <div class="row">
+    <div class="mb-3 d-flex gap-2">
+    <input type="text" id="searchText" class="form-control" placeholder="Search reports...">
+    <select id="filterType" class="form-control">
+        <option value="">All Types</option>
+        <option value="post">Post</option>
+        <option value="user">User</option>
+        <option value="comment">Comment</option>
+        <option value="lesson">Lesson</option>
+        <!-- Add any other report types your system uses -->
+    </select>
+
+    <select id="filterStatus" class="form-control">
+        <option value="">All Statuses</option>
+        <option value="Pending">Pending</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Completed">Completed</option>
+        <option value="Need Info">Need Info</option>
+        <!-- Add other statuses your system uses -->
+    </select>
+    </div>
+
+
+        <!-- LEFT SIDEBAR — LIST OF USER REPORTS -->
+        <div class="col-md-4">
+            <h4>Your Reports</h4>
+            <div class="list-group">
+
+                <?php foreach ($reports as $r): ?>
+                    <a href="?reportId=<?= $r->getReportId() ?>" 
+                       class="list-group-item list-group-item-action
+                        <?= ($selectedReport && $selectedReport->getReportId() == $r->getReportId()) ? 'active' : '' ?>
                         
-                    </div>
-                </div>
+                        <strong><?= htmlspecialchars($r->getReportType()) ?></strong><br>
+                        <small><?= htmlspecialchars($r->getReportDate()) ?></small><br>
+                        <span class="badge badge-custom"><?= htmlspecialchars($r->getReportStatus()) ?></span>
+                    </a>
+                <?php endforeach; ?>
+
             </div>
         </div>
-        <div class="report-container">  
-        <!--Actual report -->
-           
-        <?php if ($report): ?>
-        <div class="report-container">
-            <div class="report-card">
-            <h5>Report Type: <strong><?= htmlspecialchars($report->getReportType()) ?></strong></h5>
-            <h5>Report Reason: <strong><?= htmlspecialchars($report->getReportReason()) ?></strong></h5>
-            <h5>Status: <strong><?= htmlspecialchars($report->getReportStatus()) ?></strong></h5>
-           <br>
-            <!-- Responses -->
-            <?php
-            $responses = $responsecontroller->getResponsesByReportId($report->getReportId());
-
-                $allowReply = false;
-if ($responses && count($responses) > 0):
-
-    foreach ($responses as $response):
-
-        if ($response->getAllowUserReply() == 1) {
-            $allowReply = true;
-        }
-
-        // Determine sender
-        $senderId = $response->getResponderId();
-        if ($senderId == $adminId) {
-            $cssClass = "admin";
-            $sender = "Admin";
-        } else {
-            $cssClass = "user";
-            $sender = "You";
-        }
-?>
-        <div class="chat-bubble <?= $cssClass ?>">
-            <strong><?= htmlspecialchars($sender) ?>:</strong>
-            <p><?= htmlspecialchars($response->getResponseText()) ?></p>
-        </div>
-
-<?php
-    endforeach;
-
-else:
-?>
-<p>No responses yet.</p>
-<?php endif; ?>
 
 
+        <!-- MAIN PANEL — SELECTED REPORT + MESSAGES -->
+        <div class="col-md-8">
 
-            
+            <?php if (!$selectedReport): ?>
+                <p><?= $error ?></p>
 
-            <!-- Reply box -->
-            <?php if ($allowReply): ?>
-            <form class="reply-section" action="send_user_reply.php" method="POST" enctype="multipart/form-data">
-                <input type="hidden" name="reportId" value="<?= $report->getReportId() ?>">
+            <?php else: ?>
 
-                <textarea class="form-control" name="user_reply" rows="4"
-                        placeholder="Write your reply..." required></textarea>
+                <div class="report-card">
 
-                <div class="mb-3">
-                    <label class="form-label">Upload screenshot (optional)</label>
-                    <input class="form-control" type="file" name="attachment" accept="image/*">
+                    <h4>Report Details</h4>
+                    <p><strong>Type:</strong> <?= htmlspecialchars($selectedReport->getReportType()) ?></p>
+                    <p><strong>Reason:</strong> <?= htmlspecialchars($selectedReport->getReportReason()) ?></p>
+                    <p><strong>Status:</strong> <?= htmlspecialchars($selectedReport->getReportStatus()) ?></p>
+
+                    <hr>
+
+                    <h4>Messages</h4>
+
+                    <?php
+                    $allowReply = false;
+
+                    if ($responses && count($responses) > 0):
+                        foreach ($responses as $response):
+
+                            if ($response->getAllowUserReply() == 1) {
+                                $allowReply = true;
+                            }
+
+                            $senderId = $response->getResponderId();
+                            $isAdmin = ($senderId == $adminId);
+
+                            $cssClass = $isAdmin ? 'admin' : 'user';
+                            $sender = $isAdmin ? 'Admin' : 'You';
+                    ?>
+
+                        <div class="chat-bubble <?= $cssClass ?>">
+                            <strong><?= $sender ?>:</strong>
+                            <p><?= htmlspecialchars($response->getResponseText()) ?></p>
+                        </div>
+
+                    <?php endforeach; ?>
+
+                    <?php else: ?>
+                        <p>No responses yet.</p>
+                    <?php endif; ?>
+
+
+                    <!-- Reply box -->
+                    <?php if ($allowReply): ?>
+                        <form class="reply-section" action="Send-user-reply.php" method="POST" enctype="multipart/form-data">
+                            <input type="hidden" name="reportId" value="<?= $selectedReport->getReportId() ?>">
+
+                            <textarea class="form-control" name="user_reply" rows="4"
+                                placeholder="Write your reply..." required></textarea>
+
+                            <div class="mb-3">
+                                <label class="form-label">Upload screenshot (optional)</label>
+                                <input class="form-control" type="file" name="attachment" accept="image/*">
+                            </div>
+
+                            <button type="submit" class="btn btn-send px-4 py-2">
+                                <i class="fas fa-paper-plane me-2"></i>Send Reply
+                            </button>
+                        </form>
+
+                    <?php else: ?>
+                        <p style="color:#888; margin-top:20px;">The admin has not allowed replies for this report.</p>
+                    <?php endif; ?>
+
                 </div>
 
-                <button type="submit" class="btn btn-send px-4 py-2">
-                    <i class="fas fa-paper-plane me-2"></i>Send Reply
-                </button>
-            </form>
-            <?php else: ?>
-                <p style="color:#888; margin-top:20px;">The admin has not allowed replies for this report.</p>
             <?php endif; ?>
 
+                </div>
+
+            </div>
+
         </div>
-    </div>
-    <?php else: ?>
-    <p><?= isset($error) ? htmlspecialchars($error) : 'No reports or messages found.' ?></p>
-    <?php endif; ?>
-
-
-    <br>
-
-    
-    </div>  
-
-
-</div>
 
 
         <!-- Footer Start -->
@@ -279,6 +327,33 @@ else:
 
     <!-- Template Javascript -->
     <script src="../assets/js/main.js"></script>
+    <script>
+$(document).ready(function() {
+    function loadReports() {
+        $.ajax({
+            url: "search-report.php",
+            method: "GET",
+            data: {
+                type: $("#filterType").val(),
+                status: $("#filterStatus").val(),
+                search: $("#searchText").val()
+            },
+            success: function(data) {
+                $(".list-group").html(data); // update only the sidebar
+            }
+        });
+    }
+
+    // trigger on filter change or search input
+    $("#filterType, #filterStatus").on("change", loadReports);
+    $("#searchText").on("input", loadReports);
+
+    // load initially
+    loadReports();
+});
+                        
+</script>
+
 </body>
 
 </html>

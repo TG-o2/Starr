@@ -11,7 +11,7 @@ require_once __DIR__ . '/../../../Model/Response.php';
 
 // safe session start
 if (session_status() === PHP_SESSION_NONE) session_start();
-$adminId ="3";
+$adminId ="4";
 
 $reportController = new ReportController();
 $responseController = new ResponseController();
@@ -24,10 +24,23 @@ if (!$reportId) {
 
 // Get report info
 $report = $reportController->getReportById($reportId);
+
 if (!$report) {
     echo "Report not found.";
     exit;
 }
+// Determine Danger Zone status
+$dangerThreshold = 3; 
+
+$reportCount = $reportController->countReportsForEntity(
+    $report->getReportedUserId(),
+    $report->getReportedPostId(),
+    $report->getReportedCommentId(),
+    $report->getReportedLessonId(),
+    $report->getReportType()
+);
+
+$isDangerZone = $reportCount >= $dangerThreshold;
 
 
 $existingResponse = $responseController->getResponsesByReportId($reportId);
@@ -62,9 +75,18 @@ $existingResponse = $responseController->getResponsesByReportId($reportId);
       <div class="container-fluid">
         <h1 class="h3 mb-4 text-gray-800">Handle Report</h1>
 
-        <div class="card shadow mb-4 border-left-danger">
+        <div class="card shadow mb-4 <?= $isDangerZone ? 'border-left-danger border-danger' : 'border-left-primary' ?>">
+
           <div class="card-header py-3 bg-light">
             <h6 class="m-0 font-weight-bold text-danger"><i class="fas fa-flag mr-2"></i> Report Details</h6>
+            <?php if ($isDangerZone): ?>
+              <div class="alert alert-danger mt-3">
+                  <i class="fas fa-exclamation-triangle"></i>
+                  <strong>Danger Zone:</strong> This <?= htmlspecialchars($report->getReportType()) ?>  
+                  has been reported <strong><?= $reportCount ?></strong> times.
+              </div>
+          <?php endif; ?>
+
           </div>
 
           <div class="card-body">
@@ -80,7 +102,7 @@ $existingResponse = $responseController->getResponsesByReportId($reportId);
                 <p><strong>Post ID:</strong> <?= htmlspecialchars($report->getReportedPostId()) ?></p>
                 <p><strong>Date Submitted:</strong> <?= htmlspecialchars($report->getReportDate()) ?></p>
                 <p><strong>Reason:</strong> <?= htmlspecialchars($report->getReportReason()) ?></p>
-                <span class="badge badge-<?= ($report->getReportStatus() === 'Pending' ? 'danger' : ($report->getReportStatus() === 'In Progress' ? 'primary':'secondary')) ?> p-2 mt-2"><?= htmlspecialchars($report->getReportStatus()) ?></span>
+                <span class="badge badge-<?= ($report->getReportStatus() === 'Pending' ? 'danger' : ($report->getReportStatus() === 'In Progress' ? 'primary':($report->getReportStatus() === 'Approved' ? 'success': ($report->getReportStatus() === 'Escalated' ? 'warning':'secondary')))) ?> p-2 mt-2"><?= htmlspecialchars($report->getReportStatus()) ?></span>
               </div>
             </div>
 

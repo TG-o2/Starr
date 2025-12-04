@@ -18,7 +18,7 @@ private $reportDate;
 private $reporterId;       
 private $reportStatus;    
 private $evidencePath;    
-
+private $severity;
 
     public function __construct(
     $reportId = null,
@@ -32,7 +32,9 @@ private $evidencePath;
     $reportDate = "",
     $reporterId = null,
     $reportStatus = "pending",
-    $evidencePath = "")
+    $evidencePath = "",
+    $severity = "normal"
+    )
     {
         $this->reportId = $reportId;
         $this->reportType = $reportType;
@@ -46,6 +48,7 @@ private $evidencePath;
         $this->reporterId = $reporterId;
         $this->reportStatus = $reportStatus;
         $this->evidencePath = $evidencePath;
+        $this->severity = $severity;
     }
 
 
@@ -285,6 +288,26 @@ return $this->evidencePath;
 public function setEvidencePath($evidencePath)
 {
 $this->evidencePath = $evidencePath;
+
+return $this;
+}
+
+/**
+ * Get the value of severity
+ */ 
+public function getSeverity()
+{
+return $this->severity;
+}
+
+/**
+ * Set the value of severity        
+ *
+ * @return  self
+ */ 
+public function setSeverity($severity)
+{
+$this->severity = $severity;
 
 return $this;
 }

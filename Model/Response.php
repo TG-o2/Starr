@@ -8,8 +8,6 @@ class Response {
     private $responseDate;
     private $status;
     private $actionTaken;
-
-    // NEW FIELD — allow user to reply
     private $allowUserReply;
 
 

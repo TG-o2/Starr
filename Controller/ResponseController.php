@@ -26,22 +26,22 @@ class ResponseController {
     public function addResponse(Response $response) {
 
         $sql = "INSERT INTO `responses`
-                (reportID, reporter_id, response_text, response_date, report_status, action_taken, allow_user_reply)
-                VALUES 
-                (:reportID, :reporter_id, :response_text, :response_date, :report_status, :action_taken, :allow_user_reply)";
+            (reportId, responderId, responseText, responseDate, status, actionTaken, allowUserReply)
+            VALUES 
+            (:reportId, :responderId, :responseText, :responseDate, :status, :actionTaken, :allowUserReply)";
 
         $db = Config::getConnexion();
 
         try {
             $query = $db->prepare($sql);
             $query->execute([
-                'reportID'         => $response->getReportId(),
-                'reporter_id'      => $response->getResponderId(),
-                'response_text'    => $response->getResponseText(),
-                'response_date'    => $response->getResponseDate(),
-                'report_status'    => $response->getStatus(),
-                'action_taken'     => $response->getActionTaken(),
-                'allow_user_reply' => $response->getAllowUserReply()
+                'reportId'         => $response->getReportId(),
+                'responderId'      => $response->getResponderId(),
+                'responseText'     => $response->getResponseText(),
+                'responseDate'     => $response->getResponseDate(),
+                'status'           => $response->getStatus(),
+                'actionTaken'      => $response->getActionTaken(),
+                'allowUserReply'   => $response->getAllowUserReply()
             ]);
 
             return $db->lastInsertId();
@@ -109,13 +109,13 @@ public function updatePickedUpResponse($reportId, $actionTaken, $status, $allowU
        --------------------------------------------------- */
     public function updateResponse(Response $response, $id) {
         $sql = "UPDATE `responses` SET 
-                    reportID = :reportID,
-                    reporter_id = :reporter_id,
-                    response_text = :response_text,
-                    response_date = :response_date,
-                    report_status = :report_status,
-                    action_taken = :action_taken,
-                    allow_user_reply = :allow_user_reply
+                    reportId = :reportId,
+                    responderId = :responderId,
+                    responseText = :responseText,
+                    responseDate = :responseDate,
+                    status = :status,
+                    actionTaken = :actionTaken,
+                    allowUserReply = :allowUserReply
                 WHERE responseId = :id";
 
         try {
@@ -123,13 +123,13 @@ public function updatePickedUpResponse($reportId, $actionTaken, $status, $allowU
             $query = $db->prepare($sql);
 
             $query->execute([
-                'reportID'         => $response->getReportId(),
-                'reporter_id'      => $response->getResponderId(),
-                'response_text'    => $response->getResponseText(),
-                'response_date'    => $response->getResponseDate(),
-                'report_status'    => $response->getStatus(),
-                'action_taken'     => $response->getActionTaken(),
-                'allow_user_reply' => $response->getAllowUserReply(),
+                'reportId'         => $response->getReportId(),
+                'responderId'      => $response->getResponderId(),
+                'responseText'     => $response->getResponseText(),
+                'responseDate'     => $response->getResponseDate(),
+                'status'           => $response->getStatus(),
+                'actionTaken'      => $response->getActionTaken(),
+                'allowUserReply'   => $response->getAllowUserReply(),
                 'id'               => $id
             ]);
 
@@ -148,9 +148,9 @@ public function updatePickedUpResponse($reportId, $actionTaken, $status, $allowU
             $query = $db->prepare("
                 SELECT r.* 
                 FROM responses r
-                INNER JOIN report rp ON r.reportID = rp.reportID
+                INNER JOIN report rp ON r.reportId = rp.reportId
                 WHERE rp.reporterId = :id
-                ORDER BY r.response_date DESC
+                ORDER BY r.responseDate DESC
             ");
             $query->execute(['id' => $reporterId]);
             return $query->fetchAll(PDO::FETCH_ASSOC);
@@ -170,7 +170,7 @@ public function updatePickedUpResponse($reportId, $actionTaken, $status, $allowU
         try {
             $db = Config::getConnexion();
 
-            $query = $db->prepare("SELECT * FROM responses WHERE reportID = :id ORDER BY response_date ASC");
+            $query = $db->prepare("SELECT * FROM responses WHERE reportId = :id ORDER BY responseDate ASC");
             $query->execute(['id' => $reportId]);
 
             $rows = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -181,14 +181,21 @@ public function updatePickedUpResponse($reportId, $actionTaken, $status, $allowU
 
                 $response = new Response();
 
-                $response->setResponseId($row['responseID']);
-                $response->setReportId($row['reportID']);
-                $response->setResponderId($row['reporter_id']);
-                $response->setResponseText($row['response_text']);
-                $response->setResponseDate($row['response_date']);
-                $response->setStatus($row['report_status']);
-                $response->setActionTaken($row['action_taken']);
-                $response->setAllowUserReply($row['allow_user_reply']);  
+                // Support multiple possible column namings (responseId / responseID)
+                $responseId = $row['responseId'] ?? $row['responseID'] ?? $row['id'] ?? null;
+                $response->setResponseId($responseId);
+
+                $response->setReportId($row['reportId'] ?? $row['reportID'] ?? null);
+
+                // responderId is the column we expect; fall back to reporterId if present
+                $responderId = $row['responderId'] ?? $row['reporterId'] ?? $row['responderId'] ?? null;
+                $response->setResponderId($responderId);
+
+                $response->setResponseText($row['responseText'] ?? $row['responseText'] ?? '');
+                $response->setResponseDate($row['responseDate'] ?? $row['responseDate'] ?? '');
+                $response->setStatus($row['status'] ?? $row['reportStatus'] ?? '');
+                $response->setActionTaken($row['actionTaken'] ?? $row['actionTaken'] ?? '');
+                $response->setAllowUserReply($row['allowUserReply'] ?? $row['allowUserReply'] ?? 0);  
 
                 $responses[] = $response;
             }
@@ -203,22 +210,23 @@ public function updatePickedUpResponse($reportId, $actionTaken, $status, $allowU
 
 
     /* ---------------------------------------------------
-       createResponseFromData SUPPORTS allow_user_reply
+       createResponseFromData 
        --------------------------------------------------- */
     public function createResponseFromData($data)
     {
         $response = new Response();
-        $response->setReportId($data['reportID']);
-        $response->setResponderId($data['reporter_id']);
-        $response->setResponseText($data['response_text']);
-        $response->setResponseDate($data['response_date']);
-        $response->setStatus($data['report_status']);
-        $response->setActionTaken($data['action_taken']);
-        $response->setAllowUserReply($data['allow_user_reply'] ?? 0); // NEW
+        $response->setReportId($data['reportId'] ?? $data['reportID'] ?? null);
+        $response->setResponderId($data['responderId'] ?? $data['reporterId'] ?? $data['responderId'] ?? null);
+        $response->setResponseText($data['responseText']);
+        $response->setResponseDate($data['responseDate']);
+        $response->setStatus($data['status'] ?? $data['reportStatus'] ?? null);
+        $response->setActionTaken($data['actionTaken']);
+        $response->setAllowUserReply($data['allowUserReply'] ?? 0); // NEW
 
         return $this->addResponse($response);
     }
 
-   
+    
+
 
 }
