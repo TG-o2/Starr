@@ -3,9 +3,34 @@ require_once __DIR__ . '/../../../Controller/ReportController.php';
 
 $reportController = new ReportController();
 
+
 $search = $_GET['q'] ?? "";
 
-$reports = $reportController->filterReports($search, null);
+// If the query looks like a reportId (numeric), try exact lookup first
+if (strlen(trim($search)) > 0 && ctype_digit(trim($search))) {
+    $single = $reportController->getReportById($search);
+    if ($single) {
+        $reports = [[
+            'reportId' => $single->getReportId(),
+            'reportType' => $single->getReportType(),
+            'reportedUserId' => $single->getReportedUserId(),
+            'reportedPostId' => $single->getReportedPostId(),
+            'reportedCommentId' => $single->getReportedCommentId(),
+            'reportedLessonId' => $single->getReportedLessonId(),
+            'reportReason' => $single->getReportReason(),
+            'reportDescription' => $single->getReportDescription(),
+            'reportDate' => $single->getReportDate(),
+            'reporterId' => $single->getReporterId(),
+            'reportStatus' => $single->getReportStatus(),
+            'evidencePath' => $single->getEvidencePath(),
+            'severity' => $single->getSeverity()
+        ]];
+    } else {
+        $reports = [];
+    }
+} else {
+    $reports = $reportController->filterReports($search, null);
+}
 
 // Return HTML (not JSON) to directly inject into the DOM
 foreach ($reports as $r): ?>

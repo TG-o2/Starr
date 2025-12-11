@@ -12,9 +12,36 @@ $reportController = new ReportController();
 $responseController = new ResponseController();
 $search = $_GET['search'] ?? null;
 $status = $_GET['status'] ?? null;
-$reporter = $_GET['reporter'] ?? null;
+$reportId = $_GET['reportId'] ?? null;
 
-$reports = $reportController->filterReports($search, $status, $reporter);
+// If a specific reportId is provided, fetch just that report; otherwise use filterReports
+if (!empty($reportId)) {
+    $single = $reportController->getReportById($reportId);
+    if ($single) {
+        // Convert Report object to associative array expected by the template
+        $reports = [[
+            'reportId' => $single->getReportId(),
+            'reportType' => $single->getReportType(),
+            'reportedUserId' => $single->getReportedUserId(),
+            'reportedPostId' => $single->getReportedPostId(),
+            'reportedCommentId' => $single->getReportedCommentId(),
+            'reportedLessonId' => $single->getReportedLessonId(),
+            'reportReason' => $single->getReportReason(),
+            'reportDescription' => $single->getReportDescription(),
+            'reportDate' => $single->getReportDate(),
+            'reporterId' => $single->getReporterId(),
+            'reportStatus' => $single->getReportStatus(),
+            'evidencePath' => $single->getEvidencePath(),
+            'severity' => $single->getSeverity(),
+            // template checks this; default to false when not available
+            'isDangerZone' => false
+        ]];
+    } else {
+        $reports = [];
+    }
+} else {
+    $reports = $reportController->filterReports($search, $status, null);
+}
 
 // Filter medium/high severity reports first
 $severityReports = array_filter($reports, function($r){
@@ -88,6 +115,12 @@ $severityReports = $uniqueSeverityReports;
     .filter-bar .form-control, .filter-bar .form-select { min-width:0; }
     .filter-card { background:#f8f9fc; padding:12px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.04); }
     .filter-count { font-weight:600; color:#6c757d; }
+    /* Need help modal */
+    .help-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:1050; }
+    .help-modal.show { display:flex; }
+    .help-modal-content { background:#fff; padding:20px; border-radius:8px; max-width:520px; width:90%; box-shadow:0 8px 24px rgba(0,0,0,0.2); }
+    .help-modal-content h5 { margin-top:0; }
+    .help-modal-close { background:transparent; border:0; font-size:20px; line-height:1; position:absolute; right:16px; top:12px; }
 </style>
 
 <script src="https://kit.fontawesome.com/9d17856d97.js" crossorigin="anonymous"></script>
@@ -130,11 +163,24 @@ $severityReports = $uniqueSeverityReports;
 
         <!-- Page Content -->
         <div class="container-fluid">
+            <?php
+            // Flash alert to show result of admin actions (result=success|error)
+            if (isset($_GET['result'])):
+                $res = $_GET['result'];
+                $msg = ($res === 'success') ? 'Action completed successfully.' : 'There was an error processing the action.';
+                $alertClass = ($res === 'success') ? 'alert-success' : 'alert-danger';
+            ?>
+                <div id="actionFlash" class="alert <?= $alertClass ?> alert-dismissible fade show" role="alert" style="margin-top:8px;">
+                    <?= htmlspecialchars($msg) ?>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+            <?php endif; ?>
             <div class="row">
                 <div class="col-xl-8 col-lg-7">
                     <div class="card shadow mb-4">
-                        <div class="card-header py-3">
+                        <div class="card-header py-3 d-flex align-items-center justify-content-between">
                             <h6 class="m-0 font-weight-bold text-primary">Report List</h6>
+                            <button id="needHelpBtn" class="btn btn-sm btn-outline-info" type="button">Need help?</button>
                         </div>
                         <div class="card-body">
                             <div class="chart-area">
@@ -144,7 +190,7 @@ $severityReports = $uniqueSeverityReports;
                                     <form method="get" class="filter-bar" id="filter-form">
                                         <input id="report-search" name="search" value="<?= isset(
                                             $search) ? htmlspecialchars($search) : '' ?>" type="search" class="form-control" placeholder="Search reports..." />
-                                        <input id="report-reporter" name="reporter" value="<?= isset($reporter) ? htmlspecialchars($reporter) : '' ?>" type="text" class="form-control" placeholder="Reporter ID" />
+                                        <input id="report-id" name="reportId" value="<?= isset($reportId) ? htmlspecialchars($reportId) : '' ?>" type="text" class="form-control" placeholder="Report ID" />
                                         <select id="report-status-filter" name="status" class="form-control" aria-label="Filter by status">
                                             <option value="">All statuses</option>
                                             <option <?= ($status === 'Pending') ? 'selected' : '' ?>>Pending</option>
@@ -363,6 +409,28 @@ $severityReports = $uniqueSeverityReports;
             </div>
         </div>
 
+        <!-- Need Help Modal -->
+        <div id="needHelpModal" class="help-modal" role="dialog" aria-hidden="true">
+            <div class="help-modal-content position-relative">
+                <button class="help-modal-close" id="needHelpClose" aria-label="Close">&times;</button>
+                <h5>Need help reviewing reports?</h5>
+                <p class="small mb-2">Quick tips to find and handle reports:</p>
+                <ul class="small mb-2">
+                    <li><strong>Report ID:</strong> Use the <em>Report ID</em> field for exact lookups (e.g. <code>101</code>).</li>
+                    <li><strong>Main Search:</strong> Use the <em>Search reports...</em> box for reporter IDs, keywords, or parts of descriptions.</li>
+                    <li><strong>Status Filter:</strong> Narrow results by <em>Pending</em>, <em>In Progress</em>, or <em>Completed</em>.</li>
+                    <li><strong>Severity Sidebar:</strong> Check the right column to prioritize Medium/High severity reports.</li>
+                </ul>
+                <p class="small mb-2">Handling actions:</p>
+                <ul class="small mb-0">
+                    <li><strong>Approve:</strong> Mark the report as resolved and close it.</li>
+                    <li><strong>Dismiss:</strong> Reject the report without recording an admin response.</li>
+                    <li><strong>Handle report:</strong> Open the moderation form to add an admin message, choose an action, and optionally allow the user to reply.</li>
+                </ul>
+                <p class="small mt-2 text-muted">After you submit an action you will return to this list and see a brief confirmation message at the top.</p>
+            </div>
+        </div>
+
         <!-- Footer -->
         <footer class="sticky-footer bg-white">
             <div class="container my-auto">
@@ -398,7 +466,7 @@ $severityReports = $uniqueSeverityReports;
         const search = document.getElementById('report-search');
         const status = document.getElementById('report-status-filter');
         const clearBtn = document.getElementById('clear-filters');
-        const reporterInput = document.getElementById('report-reporter');
+        const reportIdInput = document.getElementById('report-id');
         const list = document.getElementById('review-list');
         const countEl = document.getElementById('filter-count');
 
@@ -427,10 +495,10 @@ $severityReports = $uniqueSeverityReports;
                     }
                 }
 
-                // If reporter filter field is set, require it to match (contains)
-                const repFilter = normalize(reporterInput ? reporterInput.value : '');
+                // If reportId filter field is set, require it to match (contains)
+                const repFilter = normalize(reportIdInput ? reportIdInput.value : '');
                 if (repFilter) {
-                    if (!reporter.includes(repFilter)) {
+                    if (!id.includes(repFilter)) {
                         matches = false;
                     }
                 }
@@ -451,13 +519,51 @@ $severityReports = $uniqueSeverityReports;
             e.preventDefault();
             search.value = '';
             status.value = '';
-            if (reporterInput) reporterInput.value = '';
+            if (reportIdInput) reportIdInput.value = '';
             filter();
         });
 
         // initial run
         document.addEventListener('DOMContentLoaded', function(){ filter(); });
         filter();
+    })();
+</script>
+
+<script>
+    // Help modal toggle
+    (function(){
+        var btn = document.getElementById('needHelpBtn');
+        var modal = document.getElementById('needHelpModal');
+        var closeBtn = document.getElementById('needHelpClose');
+        if (!btn || !modal) return;
+        btn.addEventListener('click', function(){
+            modal.classList.add('show');
+            modal.setAttribute('aria-hidden', 'false');
+        });
+        function hide(){ modal.classList.remove('show'); modal.setAttribute('aria-hidden','true'); }
+        closeBtn && closeBtn.addEventListener('click', hide);
+        modal.addEventListener('click', function(e){ if (e.target === modal) hide(); });
+        document.addEventListener('keydown', function(e){ if (e.key === 'Escape') hide(); });
+    })();
+</script>
+
+<script>
+    // Auto-hide the action flash after 5 seconds (graceful fallback if bootstrap not available)
+    (function(){
+        var flash = document.getElementById('actionFlash');
+        if (!flash) return;
+        setTimeout(function(){
+            try {
+                if (window.jQuery && typeof jQuery === 'function') {
+                    jQuery('#actionFlash').alert('close');
+                } else {
+                    flash.classList.remove('show');
+                    flash.style.display = 'none';
+                }
+            } catch (e) {
+                flash.style.display = 'none';
+            }
+        }, 5000);
     })();
 </script>
 

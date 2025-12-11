@@ -230,8 +230,15 @@ class ReportController {
                 OR reportDescription LIKE :search 
                 OR reporterId LIKE :search
                 OR reportedUserId LIKE :search
-                OR reportId LIKE :search
-            )";
+                OR CAST(reportId AS CHAR) LIKE :search";
+
+            // If the search looks numeric, also allow exact match on reportId
+            if (ctype_digit(trim($search))) {
+                $sql .= " OR reportId = :reportIdExact";
+                $params[':reportIdExact'] = (int)trim($search);
+            }
+
+            $sql .= ")";
             $params[':search'] = "%$search%";
         }
 

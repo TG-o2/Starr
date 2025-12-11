@@ -69,6 +69,8 @@ try {
     // Update report status
     $reportController->updateReportStatus($reportId, $status);
 
+    // Email notifications disabled per user request.
+
     // Redirect back (use safe encoding). Use `result` to avoid colliding with the `status` filter on Review-list.php
     header('Location: Review-list.php?reportId=' . urlencode((string)$reportId) . '&result=success');
     exit;
