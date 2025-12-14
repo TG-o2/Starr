@@ -1,0 +1,1 @@
+a:3:{s:7:"summary";s:54:"Azertyuippqsdfghjklmwxcvbn azertyuippqsdfghjklmwxcvbn.";s:6:"source";s:12:"real_ai_2025";s:5:"is_ai";b:1;}

@@ -1,0 +1,1 @@
+a:3:{s:7:"summary";s:76:"A special collection dropping out now a special collection dropping out now.";s:6:"source";s:11:"smart_local";s:5:"is_ai";b:1;}
