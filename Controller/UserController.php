@@ -13,7 +13,6 @@ if (file_exists(__DIR__ . '/../.env')) {
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../Model/User.php';
 
-// FIXED PATHS — THESE WORK 100% ON YOUR COMPUTER
 require_once __DIR__ . '/../View/Front office/assets/vendor/phpmailer/PHPMailer.php';
 require_once __DIR__ . '/../View/Front office/assets/vendor/phpmailer/SMTP.php';
 require_once __DIR__ . '/../View/Front office/assets/vendor/phpmailer/Exception.php';
@@ -141,6 +140,7 @@ class UserController {
 
         $mail = new PHPMailer(true);
         try {
+            $mail->SMTPDebug = 0;                     // Disable verbose debug output
             $mail->isSMTP();
             $mail->Host       = 'smtp.gmail.com';
             $mail->SMTPAuth   = true;
@@ -187,6 +187,7 @@ class UserController {
 
         $mail = new PHPMailer(true);
         try {
+            $mail->SMTPDebug = 0;                     // Disable verbose debug output
             $mail->isSMTP();
             $mail->Host       = 'smtp.gmail.com';
             $mail->SMTPAuth   = true;
@@ -216,5 +217,61 @@ class UserController {
             return false;
         }
     }
+
+    public function resetVerified($user_id) {
+    global $pdo;
+    $sql = "UPDATE user SET verified = 0 WHERE user_id = :user_id";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(['user_id' => $user_id]);
 }
+
+
+    public function searchAndFilterUsers($filters = []) {
+        global $pdo;
+
+        $sql = "SELECT * FROM user WHERE 1=1";
+        $params = [];
+
+        if (!empty($filters['search'])) {
+            $search = '%' . trim($filters['search']) . '%';
+            $sql .= " AND (user_id LIKE ? OR email LIKE ? OR CONCAT(fname, ' ', lname) LIKE ? OR CONCAT(lname, ' ', fname) LIKE ?)";
+            $params[] = $search;
+            $params[] = $search;
+            $params[] = $search;
+            $params[] = $search;
+        }
+
+        if (!empty($filters['role'])) {
+            $sql .= " AND role = ?";
+            $params[] = $filters['role'];
+        }
+
+        if (isset($filters['status']) && $filters['status'] !== '') {
+            switch ($filters['status']) {
+                case 'active':
+                    $sql .= " AND is_banned = 0 AND is_approved = 1";
+                    break;
+                case 'pending':
+                    $sql .= " AND is_banned = 0 AND is_approved = 0";
+                    break;
+                case 'banned':
+                    $sql .= " AND is_banned = 1";
+                    break;
+            }
+        }
+
+        if ($filters['approved'] !== '' && $filters['approved'] !== null) {
+            $sql .= " AND is_approved = ?";
+            $params[] = $filters['approved'];
+        }
+
+        $sql .= " ORDER BY user_id DESC";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+}
+// End of class
+
 ?>

@@ -9,9 +9,19 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-// Logout handler
+// Logout handler - UPDATED
 if (isset($_GET['logout'])) {
+    // Get user ID before destroying session
+    $user_id = $_SESSION['user_id'];
+    
+    // Reset verified status to 0
+    $controller = new UserController();
+    $controller->resetVerified($user_id);
+    
+    // Destroy session
+    session_unset();
     session_destroy();
+    
     header('Location: login.php?logged_out=1');
     exit;
 }
@@ -157,5 +167,15 @@ $starPoints  = $_SESSION['starPoints'] ?? '0';
             alert('You have been logged out successfully!');
         <?php endif; ?>
     </script>
+    <style>
+    /* Kill template cloud overlay */
+    .page-header::before,
+    .page-header::after {
+        content: none !important;
+        display: none !important;
+        background: none !important;
+    }
+</style>
+
 </body>
 </html>

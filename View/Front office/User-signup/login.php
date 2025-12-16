@@ -1,13 +1,14 @@
 <?php
 session_start();
+
 require_once "../../../Controller/UserController.php";
 require_once "../../../Model/User.php";
 
-// ==================== PUT YOUR v2 KEYS HERE ====================
-$recaptcha_site_key   = '6LelwSgsAAAAAL6gG2O5vwCAdAk4xqTCWOIsTiQJ';    // ← example: 6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe
-$recaptcha_secret_key = '6LelwSgsAAAAALkv6i11JDjmNAW3IVWrpZqvwAAI';  // ← example: 6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe
-// ================================================================
+/* ================== reCAPTCHA keys ================== */
+$recaptcha_site_key   = '6LelwSgsAAAAAL6gG2O5vwCAdAk4xqTCWOIsTiQJ';
+$recaptcha_secret_key = '6LelwSgsAAAAALkv6i11JDjmNAW3IVWrpZqvwAAI';
 
+/* ================== Variables ================== */
 $error = '';
 $resendSuccess = '';
 $resendError = '';
@@ -19,62 +20,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
     $resend   = isset($_POST['resend_verification']);
 
-    // =============== RECAPTCHA v2 CHECKBOX VERIFICATION ===============
+    /* ================== CAPTCHA ================== */
     $recaptcha_response = $_POST['g-recaptcha-response'] ?? '';
 
     if (empty($recaptcha_response)) {
         $error = "Please complete the CAPTCHA.";
     } else {
-        $verify = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$recaptcha_secret_key}&response={$recaptcha_response}");
+        $verify = file_get_contents(
+            "https://www.google.com/recaptcha/api/siteverify?secret={$recaptcha_secret_key}&response={$recaptcha_response}"
+        );
         $captcha_result = json_decode($verify);
 
-        if ($captcha_result->success == false) {
+        if (!$captcha_result || $captcha_result->success !== true) {
             $error = "CAPTCHA failed. Are you a robot?";
         }
     }
 
     $controller = new UserController();
 
-    // If CAPTCHA failed → stop everything
-    if (!empty($error) && (strpos($error, 'CAPTCHA') !== false)) {
-        // do nothing more
-    }
-    // =============== RESEND VERIFICATION ===============
-    elseif ($resend && !empty($email)) {
+    if ($resend && !empty($email)) {
         if ($controller->resendVerificationEmail($email)) {
             $resendSuccess = "Verification email sent! Check your inbox and spam folder.";
         } else {
             $resendError = "Failed to send email. Account may already be verified or not exist.";
         }
     }
-    // =============== NORMAL LOGIN ===============
+
     else {
         $user = $controller->getUserByEmail($email);
 
         if ($user && password_verify($password, $user['password'])) {
-            if ($user['is_banned'] == 1) {
+
+            if ((int)$user['verified'] === 0) {
+                // Auto-resend verification email when unverified (after logout)
+                if ($controller->resendVerificationEmail($email)) {
+                    $error = "Your session has expired for security. A new verification email has been sent to <strong>{$email}</strong>. Please check your inbox and spam folder.";
+                } else {
+                    $error = "Account requires verification, but email sending failed. Please try again later.";
+                }
+            }
+
+            elseif ((int)$user['is_banned'] === 1) {
                 $error = "Your account has been banned. Please contact support.";
             }
-            elseif ($user['is_approved'] == 0 && $user['role'] !== 'admin') {
+
+            elseif ((int)$user['is_approved'] === 0 && $user['role'] !== 'admin') {
                 $error = "Your account is pending admin approval. Please wait.";
             }
-            elseif ($user['verified'] == 0) {
-                $error = "Please verify your email first! Check your inbox (and spam folder).";
-            }
+
             else {
-                $_SESSION['user_id']      = $user['user_id'];
-                $_SESSION['email']        = $user['email'];
-                $_SESSION['fname']        = $user['fname'];
-                $_SESSION['lname']        = $user['lname'];
-                $_SESSION['DOB']          = $user['DOB'];
-                $_SESSION['role']         = $user['role'];
-                $_SESSION['avatar']       = $user['avatar'] ?? 'default-avatar.png';
-                $_SESSION['description']  = $user['description'] ?? '';
-                $_SESSION['starPoints']   = $user['starPoints'] ?? 0;
+                // Successful login
+                $_SESSION['user_id']     = $user['user_id'];
+                $_SESSION['email']       = $user['email'];
+                $_SESSION['fname']       = $user['fname'];
+                $_SESSION['lname']       = $user['lname'];
+                $_SESSION['DOB']         = $user['DOB'];
+                $_SESSION['role']        = $user['role'];
+                $_SESSION['avatar']      = $user['avatar'] ?? 'default-avatar.png';
+                $_SESSION['description'] = $user['description'] ?? '';
+                $_SESSION['starPoints']  = $user['starPoints'] ?? 0;
 
                 header('Location: ../template/index.html');
                 exit;
             }
+
         } else {
             $error = "Invalid email or password!";
         }
@@ -85,23 +94,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Starr - Login</title>
-  <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
-  <link href="../assets/css/style.css" rel="stylesheet">
-
-  <!-- Google reCAPTCHA v2 ("I'm not a robot" checkbox) -->
-  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-
-  <style>
-    .left-panel { background: linear-gradient(135deg, #56ab2f, #a8e6cf); min-height: 100vh; position: relative; }
-    .left-panel::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.12); }
-    .right-container { position: relative; overflow: hidden; }
-    .right-image { width: 100%; height: 100vh; object-fit: cover; filter: blur(5px); transition: filter 0.5s ease; }
-    .right-container:hover .right-image { filter: blur(2px); }
-    .right-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 50, 0, 0.25); }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Starr - Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; }
+        .left-panel { background: linear-gradient(135deg, #28a745, #20c997); position: relative; }
+        .left-panel::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.12); }
+        .right-container { position: relative; overflow: hidden; }
+        .right-image { width: 100%; height: 100vh; object-fit: cover; filter: blur(5px); transition: filter 0.5s ease; }
+        .right-container:hover .right-image { filter: blur(2px); }
+        .right-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 50, 0, 0.25); }
+    </style>
 </head>
 <body class="m-0">
 
@@ -111,16 +117,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <img src="../assets/img/starr.jpg" alt="Starr Logo" class="img-fluid mb-4 rounded shadow" style="height: 100px;">
       <h2 class="text-white fw-bold mb-4">Welcome Back!</h2>
 
+      <!-- Signup success message -->
+      <?php if (isset($_SESSION['signup_success'])): ?>
+        <div class="alert alert-success text-center fw-bold">
+          <?= htmlspecialchars($_SESSION['signup_success']) ?>
+        </div>
+        <?php unset($_SESSION['signup_success']); ?>
+      <?php endif; ?>
+
+      <!-- Logged out message -->
+      <?php if (isset($_GET['logged_out'])): ?>
+        <div class="alert alert-info text-center">
+          You have been logged out successfully.
+        </div>
+      <?php endif; ?>
+
+      <!-- Verification feedback from verify.php -->
+      <?php if (isset($_GET['msg'])): ?>
+        <div class="alert <?= strpos($_GET['msg'], 'successfully') !== false ? 'alert-success' : 'alert-danger' ?> text-center">
+          <?= htmlspecialchars(urldecode($_GET['msg'])) ?>
+        </div>
+      <?php endif; ?>
+
+      <!-- Manual resend success -->
       <?php if($resendSuccess): ?>
         <div class="alert alert-success"><?=htmlspecialchars($resendSuccess)?></div>
       <?php endif; ?>
+
+      <!-- Manual resend error -->
       <?php if($resendError): ?>
         <div class="alert alert-danger"><?=htmlspecialchars($resendError)?></div>
       <?php endif; ?>
+
+      <!-- Main login error + auto-resend info -->
       <?php if(!empty($error)): ?>
         <div class="alert alert-danger"><?=htmlspecialchars($error)?></div>
 
-        <?php if (strpos($error, 'verify your email') !== false): ?>
+        <!-- Show manual resend button if needed -->
+        <?php if (strpos($error, 'verification') !== false || strpos($error, 'session has expired') !== false): ?>
           <div class="alert alert-info mt-3">
             Didn't receive the email?
             <form method="POST" class="d-inline ms-2">
@@ -143,7 +177,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                  class="form-control form-control-lg rounded-pill" placeholder="Enter your password" required>
         </div>
 
-        <!-- RECAPTCHA v2 CHECKBOX (this is the one you wanted) -->
+        <!-- reCAPTCHA v2 Checkbox -->
         <div class="mb-4 text-center">
           <div class="g-recaptcha" data-sitekey="<?=$recaptcha_site_key?>"></div>
         </div>

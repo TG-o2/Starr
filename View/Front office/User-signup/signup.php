@@ -1,44 +1,77 @@
 <?php
+session_start();
 require_once "../../../Controller/UserController.php";
 require_once "../../../Model/User.php";
 
+$errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
+    // Basic required fields validation
+    $required = ['fname', 'lname', 'email', 'password', 'DOB', 'role'];
+    foreach ($required as $field) {
+        if (empty(trim($_POST[$field]))) {
+            $errors[] = ucfirst($field) . " is required.";
+        }
+    }
+
+    $email = trim($_POST['email'] ?? '');
+    if ($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = "Invalid email format.";
+    }
+
+    if (!empty($_POST['password']) && strlen($_POST['password']) < 6) {
+        $errors[] = "Password must be at least 6 characters.";
+    }
+
+    // Avatar upload
     $avatarName = null;
-   if (!empty($_FILES['avatar']['name'])) {
-    $avatarName = time() . "_" . $_FILES['avatar']['name'];
+    if (!empty($_FILES['avatar']['name']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
+        $avatarName = time() . "_" . basename($_FILES['avatar']['name']);
+        $uploadPath = "../assets/img/userProfile/" . $avatarName;
+        if (!move_uploaded_file($_FILES['avatar']['tmp_name'], $uploadPath)) {
+            $errors[] = "Failed to upload avatar.";
+            $avatarName = null;
+        }
+    }
 
-    $uploadPath = "../assets/img/userProfile/" . $avatarName;
+    // If errors, store and redirect back
+    if (!empty($errors)) {
+        $_SESSION['signup_errors'] = $errors;
+        $_SESSION['old_input'] = $_POST;
+        header('Location: signup.php');
+        exit;
+    }
 
-    move_uploaded_file($_FILES['avatar']['tmp_name'], $uploadPath);
-
-    
-}
-
-
-$user = new User(
-    uniqid("USR_"),           
-    $_POST['email'],
-    $_POST['password'],
-    $_POST['fname'],
-    $_POST['lname'],
-    $_POST['DOB'],
-    $_POST['role'],
-    $avatarName,
-    $_POST['description'],
-    0,       
-    0         
-);
-
+    // Check if email already exists
     $controller = new UserController();
+    if ($controller->getUserByEmail($email)) {
+        $_SESSION['signup_errors'] = ["This email is already registered!"];
+        $_SESSION['old_input'] = $_POST;
+        header('Location: signup.php');
+        exit;
+    }
+
+    // Create and save user with verification
+    $user = new User(
+        uniqid("USR_"),
+        $email,
+        $_POST['password'],
+        $_POST['fname'],
+        $_POST['lname'],
+        $_POST['DOB'],
+        $_POST['role'],
+        $avatarName,
+        $_POST['description'] ?? ''
+    );
+
     $controller->addUserWithVerification($user);
 
+    $_SESSION['signup_success'] = "Account created! Please check your email (including spam) for the verification link.";
     header('Location: login.php');
     exit;
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -65,61 +98,75 @@ $user = new User(
         <img src="../assets/img/starr.jpg" alt="Starr Logo" class="img-fluid rounded shadow" style="height: 110px;">
         <h2 class="text-white fw-bold mt-3">Create an Account</h2>
       </div>
-<form method="POST" enctype="multipart/form-data">
-  <div class="row g-3">
-    <div class="col-md-6">
-      <input name="fname" class="form-control form-control-lg rounded-pill" placeholder="First name">
-    </div>
-    <div class="col-md-6">
-      <input name="lname" class="form-control form-control-lg rounded-pill" placeholder="Last name">
-    </div>
-  </div>
 
-  <div class="mt-3">
-    <input name="email" class="form-control form-control-lg rounded-pill" placeholder="Email" >
-  </div>
-
-  <div class="mt-3">
-    <input name="password" type="password" class="form-control form-control-lg rounded-pill" placeholder="Password" >
-  </div>
-
-  <div class="mt-3">
-    <input name="DOB" type="date" class="form-control form-control-lg rounded-pill" >
-  </div>
-
-  <div class="mt-3">
-    <select name="role" class="form-select form-select-lg rounded-pill" >
-      <option value="" selected disabled>Select role</option>
-      <option value="Teacher">Teacher</option>
-      <option value="Parent">Parent</option>
-      <option value="Kid">Kid</option>
-    </select>
-  </div>
-
-  <div class="mt-3">
-    <input name="avatar" type="file" class="form-control form-control-lg rounded-pill">
-  </div>
-
-  <div class="mt-3">
-    <textarea name="description" class="form-control rounded-4" placeholder="Describe yourself"></textarea>
-  </div>
-
-  <div class="d-grid mt-4">
-    <button 
-    type="submit" 
-    id="subButton" 
-    class="btn btn-success btn-lg rounded-pill shadow fw-bold">
-    Sign Up
-</button>
-  </div>
-</form>
-
-<p class="text-center mt-4 mb-0">
-  Already have an account? <a href="login.php" class="text-success fw-bold">Login here!</a>
-</p>
-
+      <!-- Show validation errors -->
+      <?php if (isset($_SESSION['signup_errors'])): ?>
+        <div class="alert alert-danger">
+          <ul class="mb-0">
+            <?php foreach ($_SESSION['signup_errors'] as $err): ?>
+              <li><?= htmlspecialchars($err) ?></li>
+            <?php endforeach; ?>
+          </ul>
         </div>
-      </div>
+        <?php unset($_SESSION['signup_errors']); ?>
+      <?php endif; ?>
+
+      <form method="POST" enctype="multipart/form-data">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <input name="fname" class="form-control form-control-lg rounded-pill" placeholder="First name" 
+                   value="<?= htmlspecialchars($_SESSION['old_input']['fname'] ?? '') ?>" required>
+          </div>
+          <div class="col-md-6">
+            <input name="lname" class="form-control form-control-lg rounded-pill" placeholder="Last name" 
+                   value="<?= htmlspecialchars($_SESSION['old_input']['lname'] ?? '') ?>" required>
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <input name="email" type="email" class="form-control form-control-lg rounded-pill" placeholder="Email" 
+                 value="<?= htmlspecialchars($_SESSION['old_input']['email'] ?? '') ?>" required>
+        </div>
+
+        <div class="mt-3">
+          <input name="password" type="password" class="form-control form-control-lg rounded-pill" placeholder="Password" required>
+        </div>
+
+        <div class="mt-3">
+          <input name="DOB" type="date" class="form-control form-control-lg rounded-pill" 
+                 value="<?= htmlspecialchars($_SESSION['old_input']['DOB'] ?? '') ?>" required>
+        </div>
+
+        <div class="mt-3">
+          <select name="role" class="form-select form-select-lg rounded-pill" required>
+            <option value="" <?= empty($_SESSION['old_input']['role']) ? 'selected' : '' ?> disabled>Select role</option>
+            <option value="Teacher" <?= ($_SESSION['old_input']['role'] ?? '') === 'Teacher' ? 'selected' : '' ?>>Teacher</option>
+            <option value="Parent" <?= ($_SESSION['old_input']['role'] ?? '') === 'Parent' ? 'selected' : '' ?>>Parent</option>
+            <option value="Kid" <?= ($_SESSION['old_input']['role'] ?? '') === 'Kid' ? 'selected' : '' ?>>Kid</option>
+          </select>
+        </div>
+
+        <div class="mt-3">
+          <input name="avatar" type="file" class="form-control form-control-lg rounded-pill" accept="image/*">
+        </div>
+
+        <div class="mt-3">
+          <textarea name="description" class="form-control rounded-4" placeholder="Describe yourself (optional)"><?= htmlspecialchars($_SESSION['old_input']['description'] ?? '') ?></textarea>
+        </div>
+
+        <?php unset($_SESSION['old_input']); ?>
+
+        <div class="d-grid mt-4">
+          <button type="submit" id="subButton" class="btn btn-success btn-lg rounded-pill shadow fw-bold">
+            Sign Up
+          </button>
+        </div>
+      </form>
+
+      <p class="text-center mt-4 mb-0">
+        Already have an account? <a href="login.php" class="text-success fw-bold">Login here!</a>
+      </p>
+
     </div>
   </div>
 </div>

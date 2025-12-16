@@ -3,6 +3,21 @@ require_once "../../../Controller/UserController.php";
 require_once "../../../Model/User.php";
 session_start();
 
+$controller = new UserController();
+$errors = [];
+
+// Handle logout/reset verified
+if (isset($_GET['logout']) && $_GET['logout'] == 1) {
+    if (isset($_SESSION['user_id'])) {
+        $userId = $_SESSION['user_id'];
+        $controller->resetVerified($userId); // Make sure DB updates
+    }
+    session_destroy();
+    header('Location: login.php');
+    exit;
+}
+
+
 // Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
@@ -21,13 +36,8 @@ $avatar      = $_SESSION['avatar'] ?? '';
 $description = $_SESSION['description'] ?? '';
 $star        = $_SESSION['starPoints'] ?? 0;
 
-$controller = new UserController();
-$errors = [];
-
-// Handle form submission
+// Handle profile update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
-    // Get POST values
     $newFname = trim($_POST['fname'] ?? '');
     $newLname = trim($_POST['lname'] ?? '');
     $newEmail = trim($_POST['email'] ?? '');
@@ -44,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Handle avatar upload
-    $newAvatar = $avatar; // keep old avatar by default
+    $newAvatar = $avatar;
     if (!empty($_FILES['avatar']['name'])) {
         $avatarName = time() . "_" . basename($_FILES['avatar']['name']);
         $uploadPath = "../assets/img/userProfile/" . $avatarName;
@@ -56,7 +66,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        // Hash password if changed, else keep old
         $passwordToSave = !empty($newPassword) ? password_hash($newPassword, PASSWORD_DEFAULT) : $password;
 
         // Create User object
@@ -96,6 +105,7 @@ if (isset($_GET['delete']) && $_GET['delete'] == 1) {
     exit;
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

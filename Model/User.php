@@ -14,19 +14,20 @@ class User {
     private $is_approved = 0;
     private $is_banned = 0;
 
-    public function __construct($user_id, $email, $password, $fname, $lname, $DOB, $role, $avatar, $description) {
-        $this->user_id = $user_id;
-        $this->email = $email;
-        $this->password = $password;
-        $this->fname = $fname;
-        $this->lname = $lname;
-        $this->DOB = $DOB;
-        $this->role = $role;
-        $this->avatar = $avatar;
-        $this->description = $description;
-        $this->is_approved = $is_approved = 0;
-        $this->is_banned = $is_banned = 0;
-    }
+public function __construct($user_id, $email, $password, $fname, $lname, $DOB, $role, $avatar, $description) {
+    $this->user_id = $user_id;
+    $this->email = $email;
+    $this->password = $password;
+    $this->fname = $fname;
+    $this->lname = $lname;
+    $this->DOB = $DOB;
+    $this->role = $role;
+    $this->avatar = $avatar;
+    $this->description = $description;
+    $this->is_approved = 0;
+    $this->is_banned = 0;
+}
+
 
     public function getUserId() {
         return $this->user_id;
@@ -68,5 +69,13 @@ class User {
     }
     public function isBanned() {
         return $this->is_banned;
+    }
+
+    public function getIsApproved() {
+    return $this->is_approved;
+    }
+
+    public function getIsBanned() {
+    return $this->is_banned;
     }
 }
