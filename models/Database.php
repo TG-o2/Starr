@@ -6,6 +6,10 @@ class Database {
     private $password = '';
     public $conn;
 
+    public function __construct() {
+        $this->getConnection();
+    }
+
     public function getConnection() {
         $this->conn = null;
         try {

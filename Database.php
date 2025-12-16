@@ -1,13 +1,13 @@
 <?php
 class Database {
+    protected PDO $conn;
+
     private $host = "127.0.0.1";
     private $db_name = "schooldb";
     private $username = "root";
     private $password = "";
-    public $conn;
 
-    public function getConnection() {
-        $this->conn = null;
+    public function __construct() {
         try {
             $this->conn = new PDO(
                 "mysql:host={$this->host};dbname={$this->db_name};charset=utf8mb4",
@@ -16,9 +16,7 @@ class Database {
             );
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch(PDOException $e) {
-            echo "Connection error: " . $e->getMessage();
-            exit;
+            die("Connection failed: " . $e->getMessage());
         }
-        return $this->conn;
     }
 }

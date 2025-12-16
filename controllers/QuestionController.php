@@ -19,37 +19,119 @@ class QuestionController {
 
     // Add a question
     public function add(array $postData = []) {
-        $lessons = $this->lessonModel->getAll();
+    $lessons = $this->lessonModel->getAll();
+    
+    // Get current lesson ID from POST, GET, or question data
+    $currentLessonId = (int)($_POST['lessonId'] ?? $_GET['lessonId'] ?? 0);
+    
+    // Only show questions for the current lesson
+    $questions = $currentLessonId > 0 ? $this->model->getByLesson($currentLessonId) : [];
 
-        if (!empty($postData)) {
-            $data = [
-                'lessonId' => (int)($postData['lessonId'] ?? 0),
-                'questionText' => trim($postData['questionText'] ?? ''),
-                'option1' => trim($postData['option1'] ?? ''),
-                'option2' => trim($postData['option2'] ?? ''),
-                'option3' => trim($postData['option3'] ?? ''),
-                'goodAnswer' => trim($postData['goodAnswer'] ?? '')
-            ];
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($postData)) {
+        $lessonId = (int)($postData['lessonId'] ?? 0);
+        $questions = $postData['questions'] ?? [];
+        $quizTimeLimit = (int)($postData['quiz_time_limit'] ?? 30);
 
-            if ($data['lessonId'] <= 0 || $data['questionText'] === '' || $data['goodAnswer'] === '') {
-                $error = "Please fill all required fields.";
-                require_once __DIR__ . '/../views/back/questionForm.php';
-                return;
-            }
-
-            if ($data['option1'] === '' || $data['option2'] === '') {
-                $error = "At least 2 options are required.";
-                require_once __DIR__ . '/../views/back/questionForm.php';
-                return;
-            }
-
-            $this->model->create($data);
-            header("Location: /lessons_project/views/back/questionList_direct.php");
-            exit;
+        if ($lessonId <= 0 || empty($questions)) {
+            $error = "Please add at least one question.";
+            require __DIR__ . '/../views/back/questionForm.php';
+            return;
         }
 
-        require_once __DIR__ . '/../views/back/questionForm.php';
+        // Update the lesson's quiz time limit
+        if ($quizTimeLimit > 0) {
+            $this->lessonModel->updateQuizTimeLimit($lessonId, $quizTimeLimit);
+        }
+
+        foreach ($questions as $q) {
+            $questionText = trim((string)($q['questionText'] ?? ''));
+            if ($questionText === '') {
+                continue;
+            }
+
+            $points = (int)($q['points'] ?? 1);
+            if ($points <= 0) {
+                $points = 1;
+            }
+
+            $timeLimit = (int)($q['time_limit'] ?? 60); // Default 60 seconds per question
+            if ($timeLimit <= 0) {
+                $timeLimit = 60;
+            }
+
+            $options = $q['options'] ?? null;
+            if (!is_array($options)) {
+                $options = [
+                    $q['option1'] ?? null,
+                    $q['option2'] ?? null,
+                    $q['option3'] ?? null,
+                    $q['option4'] ?? null,
+                ];
+            }
+
+            $options = array_filter($options, static function ($v) {
+                return trim((string)$v) !== '';
+            });
+            $options = array_map(static function ($v) {
+                return trim((string)$v);
+            }, $options);
+            if (!empty($options)) {
+                ksort($options);
+            }
+
+            if (count($options) < 2) {
+                continue;
+            }
+
+            $correctKeys = $q['correct'] ?? [];
+            if (!is_array($correctKeys)) {
+                $correctKeys = [$correctKeys];
+            }
+            $correctKeys = array_values(array_filter(array_map('intval', $correctKeys), static function ($v) {
+                return is_int($v) || is_numeric($v);
+            }));
+
+            $keys = array_keys($options);
+            $correctIndices = [];
+            foreach ($correctKeys as $ck) {
+                $pos = array_search((int)$ck, $keys, true);
+                if ($pos !== false) {
+                    $correctIndices[] = (int)$pos;
+                }
+            }
+            $correctIndices = array_values(array_unique($correctIndices));
+
+            $goodAnswer = '';
+            if (!empty($correctIndices)) {
+                $optList = array_values($options);
+                $goodAnswer = (string)($optList[$correctIndices[0]] ?? '');
+            } elseif (!empty($q['goodAnswer'])) {
+                $goodAnswer = trim((string)$q['goodAnswer']);
+            }
+
+            if (empty($correctIndices) || $goodAnswer === '') {
+                continue;
+            }
+
+            $optionsList = array_values($options);
+
+            $this->model->create([
+                'lessonId' => $lessonId,
+                'questionText' => $questionText,
+                'options' => $optionsList,
+                'goodAnswer' => $goodAnswer,
+                'correctIndices' => $correctIndices,
+                'points' => $points,
+                'time_limit' => $timeLimit,
+            ]);
+        }
+
+        header("Location: /lessons_project/views/back/questionList_direct.php");
+        exit;
     }
+
+    require __DIR__ . '/../views/back/questionForm.php';
+}
 
     // Edit a question by ID
     public function edit(int $questionId, array $postData = []) {
@@ -60,29 +142,88 @@ class QuestionController {
         }
 
         $lessons = $this->lessonModel->getAll();
+        
+        // Get the lesson ID from the current question
+        $currentLessonId = (int)($question['lessonId'] ?? 0);
+        
+        // Only show questions for the current lesson
+        $questions = $currentLessonId > 0 ? $this->model->getByLesson($currentLessonId) : [];
 
-        if (!empty($postData)) {
-            $data = [
-                'questionText' => trim($postData['questionText'] ?? ''),
-                'option1' => trim($postData['option1'] ?? ''),
-                'option2' => trim($postData['option2'] ?? ''),
-                'option3' => trim($postData['option3'] ?? ''),
-                'goodAnswer' => trim($postData['goodAnswer'] ?? '')
-            ];
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($postData)) {
+            $questionText = trim((string)($postData['questionText'] ?? ''));
+            $points = (int)($postData['points'] ?? 1);
+            $timeLimit = (int)($postData['time_limit'] ?? 60); // Add timer handling
+            
+            if ($points <= 0) {
+                $points = 1;
+            }
+            
+            if ($timeLimit <= 0) {
+                $timeLimit = 60;
+            }
 
-            if ($data['questionText'] === '' || $data['goodAnswer'] === '') {
-                $error = "Please fill all required fields.";
+            $options = $postData['options'] ?? null;
+            if (!is_array($options)) {
+                $options = [
+                    $postData['option1'] ?? null,
+                    $postData['option2'] ?? null,
+                    $postData['option3'] ?? null,
+                    $postData['option4'] ?? null,
+                ];
+            }
+
+            // Keep original indices so the posted "correct" value stays valid even if options were removed.
+            $options = array_filter($options, static function ($v) {
+                return trim((string)$v) !== '';
+            });
+            $options = array_map(static function ($v) {
+                return trim((string)$v);
+            }, $options);
+            if (!empty($options)) {
+                ksort($options);
+            }
+
+            $correctKeys = $postData['correct'] ?? [];
+            if (!is_array($correctKeys)) {
+                $correctKeys = [$correctKeys];
+            }
+            $correctKeys = array_values(array_filter(array_map('intval', $correctKeys), static function ($v) {
+                return is_int($v) || is_numeric($v);
+            }));
+
+            $keys = array_keys($options);
+            $correctIndices = [];
+            foreach ($correctKeys as $ck) {
+                $pos = array_search((int)$ck, $keys, true);
+                if ($pos !== false) {
+                    $correctIndices[] = (int)$pos;
+                }
+            }
+            $correctIndices = array_values(array_unique($correctIndices));
+
+            $goodAnswer = '';
+            if (!empty($correctIndices)) {
+                $optList = array_values($options);
+                $goodAnswer = (string)($optList[$correctIndices[0]] ?? '');
+            } elseif (!empty($postData['goodAnswer'])) {
+                $goodAnswer = trim((string)$postData['goodAnswer']);
+            }
+
+            if ($questionText === '' || count($options) < 2 || empty($correctIndices) || $goodAnswer === '') {
+                $error = 'Please fill all required fields.';
                 require_once __DIR__ . '/../views/back/questionForm.php';
                 return;
             }
+            $optionsList = array_values($options);
 
-            if ($data['option1'] === '' || $data['option2'] === '') {
-                $error = "At least 2 options are required.";
-                require_once __DIR__ . '/../views/back/questionForm.php';
-                return;
-            }
-
-            $this->model->update($questionId, $data);
+            $this->model->update($questionId, [
+                'questionText' => $questionText,
+                'options' => $optionsList,
+                'goodAnswer' => $goodAnswer,
+                'correctIndices' => $correctIndices,
+                'points' => $points,
+                'time_limit' => $timeLimit,
+            ]);
             header("Location: /lessons_project/views/back/questionList_direct.php");
             exit;
         }
