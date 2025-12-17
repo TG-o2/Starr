@@ -55,7 +55,7 @@ CREATE TABLE `lessons` (
 INSERT INTO `lessons` (`lessonId`, `title`, `ageRange`, `average_age`, `description`, `content`, `category`, `difficulty`, `duration`, `is_published`, `is_featured`, `thumbnail_url`, `video_url`, `quiz_time_limit`, `created_at`, `updated_at`, `created_by`, `updated_by`) VALUES
 (1, 'Xx', '5-18', 12, 'ZZZ', '', 'General', 'beginner', 1, 0, 0, NULL, NULL, NULL, '2025-12-14 19:31:26', '2025-12-14 19:31:26', 1, 1),
 (2, 'Xxx', '5-18', 12, 'ZZZ', '', 'General', 'beginner', 1, 0, 0, NULL, NULL, NULL, '2025-12-14 21:14:35', '2025-12-14 21:14:35', 1, 1),
-(3, 'Xnxx', '5-18', 12, 'ZZZ', '', 'General', 'beginner', 1, 0, 0, NULL, NULL, NULL, '2025-12-14 21:17:25', '2025-12-14 21:17:25', 1, 1),
+(3, 'Xttxx', '5-18', 12, 'ZZZ', '', 'General', 'beginner', 1, 0, 0, NULL, NULL, NULL, '2025-12-14 21:17:25', '2025-12-14 21:17:25', 1, 1),
 (4, 'qqq', '5-18', 12, 'sqd', '', 'General', 'beginner', 1, 0, 0, NULL, NULL, NULL, '2025-12-14 21:24:18', '2025-12-14 21:24:18', 1, 1);
 
 -- --------------------------------------------------------
