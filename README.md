@@ -69,4 +69,4 @@ File permissions must allow read/write access where needed.
 
 Author
 
-Developed as a web development project for learning and practical implementation.
+Mounib sarray (user-signup) only.
