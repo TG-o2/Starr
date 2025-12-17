@@ -3,14 +3,13 @@
     include $_SERVER['DOCUMENT_ROOT'] . '/Post and Comments/Model/messages.php';
     class messagescontroller{
         public function addmessages($messages) {
-            $sql = "INSERT INTO messages (id, post_id, content, number_replies, user_name, like_count, created_at) 
-                    VALUES ( :id, :post_id, :content, :number_replies, :user_name, :like_count, :created_at)";
+            $sql = "INSERT INTO messages (post_id, content, number_replies, user_name, like_count, created_at) 
+                    VALUES ( :post_id, :content, :number_replies, :user_name, :like_count, :created_at)";
             $db = config::getConnexion();
             
             try {
                 $query = $db->prepare($sql);
                 $query->execute([
-                    'id' => $messages->getid(),
                     'post_id' => $messages->getpost_id(),
                     'content' => $messages->getcontent(),
                     'number_replies' => $messages->getnumber_replies(),
