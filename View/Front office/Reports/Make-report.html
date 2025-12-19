@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Report | Starr</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="img/favicon.ico" rel="icon">
+
+    <!-- Favicon -->
+    <link href="../logo.jpeg" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Handlee&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="../assets/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="../assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="../assets/css/style.css" rel="stylesheet">
+
+    <style>
+        .report-section {
+            background-color: #fff9e6;
+            padding: 60px 0;
+        }
+
+        .report-form {
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 700px;
+            margin: auto;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-control {
+            border-radius: 10px;
+        }
+
+        .btn-report {
+            background-color: #FEA116;
+            color: #fff;
+            font-weight: 600;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .btn-report:hover {
+            background-color: #e28e0e;
+            color: #fff;
+        }
+    </style>
+    </head>
+    <body>
+
+       <!-- Navbar Start -->
+        <nav class="navbar navbar-expand-lg bg-white navbar-light sticky-top px-4 px-lg-5 py-lg-0">
+            <a class="navbar-brand">
+                <h1 class="m-0 text-primary"> <img src="../logo.jpeg" alt="Starr Logo" style="height: 60px; vertical-align: middle; margin-right: 8px;">
+            Starr</h1>
+            </a>
+            <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <div class="navbar-nav mx-auto">
+                    <a href="../index.html" class="nav-item nav-link">Home</a>
+                    
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Posts</a>
+                        <div class="dropdown-menu rounded-0 rounded-bottom border-0 m-0">
+                            <a href="../posts and comments/addpost.php" class="dropdown-item">Create a post</a>
+                            <a href="../posts and comments/posts.html" class="dropdown-item">View threads</a>
+                        </div>
+                    </div>
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Report</a>
+                        <div class="dropdown-menu rounded-0 rounded-bottom border-0 m-0">
+                            <a href="Make-report.html" class="dropdown-item active">Make a report</a>
+                            <a href="Messages.php" class="dropdown-item">Check response</a>
+                        </div>
+                    </div>
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Starrs</a>
+                        <div class="dropdown-menu rounded-0 rounded-bottom border-0 m-0">
+                            <a href="../point system/my-points.php" class="dropdown-item">My Starrs</a>
+                            <a href="../point system/badges.php" class="dropdown-item">Badges</a>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </nav>
+        <!-- Navbar End -->
+         
+        <!-- Page Header End -->
+        <div class="container-xxl py-5 page-header position-relative mb-5">
+        </div>
+        <!-- Page Header End -->
+    
+    <!-- Report Section Start -->
+    <div class="report-section">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h1 class="display-5 text-primary mb-3">Report User or Post</h1>
+                <p class="text-muted">Help us keep our community safe and kind 💛</p>
+            </div>
+            <form id="reportForm" class="report-form" action="Make-report.php" method="POST" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="reportType" class="form-label">What are you reporting?</label>
+                    <select class="form-select" id="reportType" name="reportType" >
+                        <option value="" selected disabled>Choose type...</option>
+                        <option value="user">User</option>
+                        <option value="post">Post</option>
+                        <option value="comment">Comment</option>
+                        <option value="lesson">Lesson</option>
+                    </select>
+                    <span class="nav-item nav-link" id="reported-type-msg"></span> 
+                </div>
+
+                <div class="mb-3">
+                    <label for="reported-user-id" class="form-label">Username ID</label>
+                    <input type="text" id="reported-user-id" name="reported-user-id" class="form-control"  placeholder="Enter username " >
+                    <span class="nav-item nav-link" id="reported-user-id-msg"></span>
+                </div>
+                <div class="mb-3">
+                    <label for="reported-post-id" class="form-label">Post ID</label>
+                    <input type="text" id="reported-post-id" name="reported-post-id" class="form-control" placeholder="Enter post link">
+                    <span class="nav-item nav-link" id="reported-post-id-msg"></span>
+                </div>
+                <div class="mb-3">
+                    <label for="reported-comment-id" class="form-label">Comment ID</label>
+                    <input type="text" id="reported-comment-id" name="reported-comment-id" class="form-control"  placeholder="Enter comment link">
+                    <span class="nav-item nav-link" id="reported-comment-id-msg"></span>
+                </div>
+                <div class="mb-3">
+                    <label for="reported-lesson-id" class="form-label">Lesson ID</label>
+                    <input type="text" id="reported-lesson-id" name="reported-lesson-id" class="form-control" placeholder="Enter lesson link" >
+                    <span class="nav-item nav-link" id="reported-lesson-id-msg"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label for="report-reason" class="form-label">Reason for report</label>
+                        <select class="form-select" id="report-reason" name="report-reason">
+                        <option selected="" disabled="">Choose reason...</option>
+                        <option value="hate">Hate speech / Discrimination</option>
+                        <option value="violence">Violent or harmful content</option>
+                        <option value="spam">Spam or fake account</option>
+                        <option value="privacy">Privacy violation</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <span class="nav-item nav-link" id="reported-reason-msg"></span>                    
+                </div>
+
+                <div class="mb-3">
+                    <label for="details" class="form-label">Additional details</label>
+                    <textarea class="form-control" id="report-description" name="report-description" rows="4" placeholder="Describe the issue in detail..."></textarea>
+                    <span class="nav-item nav-link" id="reported-details-msg"></span>
+                    
+                </div>
+
+                <div class="mb-3">
+                    <label for="evidence" class="form-label">Upload screenshot (optional)</label>
+                    <input class="form-control" type="file" id="evidence" name="evidence" accept="image/*">
+                </div>
+
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-report px-5 py-2">
+                        <i class="fa-solid fa-flag me-2"></i> Submit Report
+                    </button>
+
+                </div>
+            </form> 
+        </div>
+    </div>
+    <!-- Report Section End -->
+
+    <!-- Footer Start -->
+    <div class="container-fluid bg-dark text-light footer mt-5 py-5">
+        <div class="container py-5">
+            <div class="row g-5">
+                <div class="col-lg-4 col-md-6">
+                    <h4 class="text-white mb-4">About Us</h4>
+                    <p>Creating a safe and inclusive place for children to share, learn, and grow together.</p>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <h4 class="text-white mb-4">Contact</h4>
+                    <p><i class="fa fa-map-marker-alt me-3"></i>Tunis, Tunisia</p>
+                    <p><i class="fa fa-envelope me-3"></i>info@kider.com</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Footer End -->
+    
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/lib/wow/wow.min.js"></script>
+    <script src="../assets/lib/easing/easing.min.js"></script>
+    <script src="../assets/lib/waypoints/waypoints.min.js"></script>
+    <script src="../assets/lib/owlcarousel/owl.carousel.min.js"></script>
+
+
+    
+    <!-- Template Javascript -->
+    <script src="../assets/js/main.js"></script>
+
+    <!-- JS for Assignment-->
+    
+
+        <!-- Autofill and lock by query params: ?type=post&id=123 -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const params = new URLSearchParams(window.location.search);
+                const type = params.get('type');
+                const id = params.get('id');
+                const validTypes = ['user','post','comment','lesson'];
+
+                const typeSelect = document.getElementById('reportType');
+                const userInput = document.getElementById('reported-user-id');
+                const postInput = document.getElementById('reported-post-id');
+                const commentInput = document.getElementById('reported-comment-id');
+                const lessonInput = document.getElementById('reported-lesson-id');
+                const typeMsg = document.getElementById('reported-type-msg');
+
+                function padToMin3(value) {
+                    const v = (value ?? '').toString().trim();
+                    if (v === '') return '';
+                    return v.padStart(3, '0');
+                }
+
+                function lockInput(inputEl, value) {
+                    if (!inputEl) return;
+                    inputEl.value = padToMin3(value);
+                    inputEl.readOnly = true; // keep enabled so it submits
+                    inputEl.classList.add('bg-light');
+                }
+
+                // If URL carries a preselected type/id, set and lock
+                if (validTypes.includes(type) && id) {
+                    const paddedId = padToMin3(id);
+                    typeSelect.value = type;
+                    // Show helper message
+                    if (typeMsg) {
+                        typeMsg.textContent = `Locked to ${type} #${paddedId}`;
+                        typeMsg.style.color = '#198754';
+                    }
+
+                    // Lock relevant input and clear others
+                    userInput && (userInput.value = '');
+                    postInput && (postInput.value = '');
+                    commentInput && (commentInput.value = '');
+                    lessonInput && (lessonInput.value = '');
+
+                    switch (type) {
+                        case 'user':    lockInput(userInput, paddedId);    break;
+                        case 'post':    lockInput(postInput, paddedId);    break;
+                        case 'comment': lockInput(commentInput, paddedId); break;
+                        case 'lesson':  lockInput(lessonInput, paddedId);  break;
+                    }
+
+                    // Prevent changing type when locked; revert on change
+                    typeSelect.addEventListener('change', function(e) {
+                        e.preventDefault();
+                        this.value = type; // revert
+                    });
+                }
+
+                // Optional: dynamically hint which ID field is required based on type selection
+                typeSelect.addEventListener('change', function() {
+                    const t = this.value;
+                    const map = { user: userInput, post: postInput, comment: commentInput, lesson: lessonInput };
+                    [userInput, postInput, commentInput, lessonInput].forEach(el => {
+                        if (!el) return;
+                        el.placeholder = 'Not required for this type';
+                    });
+                    if (map[t]) {
+                        map[t].placeholder = `Enter ${t} ID`;
+                    }
+                });
+
+                // Pad manually entered IDs on blur (if not readOnly)
+                function attachPadOnBlur(inputEl) {
+                    if (!inputEl) return;
+                    inputEl.addEventListener('blur', function() {
+                        if (this.readOnly) return;
+                        const v = (this.value || '').trim();
+                        if (v) this.value = padToMin3(v);
+                    });
+                }
+                attachPadOnBlur(userInput);
+                attachPadOnBlur(postInput);
+                attachPadOnBlur(commentInput);
+                attachPadOnBlur(lessonInput);
+            });
+        </script>
+    <script src="Validate-report.js"></script> 
+
+</body>
+
+</html>
