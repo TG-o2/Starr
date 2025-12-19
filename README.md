@@ -20,6 +20,12 @@ Starr-Starr is a safe web platform designed for children to learn and interact. 
 - MySQL database
 - Modern web browser
 
+## API Architecture
+-Submitting reports
+-Fetching messages or responses
+-Handling dynamic content updates without page reload
+-Supporting future mobile or external integrations
+
 ## Installation
 1. Clone the repository into the XAMPP htdocs directory:
    ```
