@@ -1,10 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/../admin_guard.php';
 require_once "../../../Controller/UserController.php";
-
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-    die("Access denied.");
-}
 
 $user_id = $_GET['id'] ?? '';
 if (!$user_id) die("Invalid user.");

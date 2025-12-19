@@ -147,13 +147,7 @@
 
 <body>
     <div class="container-xxl bg-white p-0">
-        <!-- Spinner Start -->
-        <div id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
-            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-                <span class="sr-only">Loading...</span>
-            </div>
-        </div>
-        <!-- Spinner End -->
+        
 
         <!-- Navbar Start -->
         <nav class="navbar navbar-expand-lg bg-white navbar-light sticky-top px-4 px-lg-5 py-lg-0">
@@ -192,6 +186,8 @@
                     </div>
                     <a href="../News/gestionnews.php" class="nav-item nav-link">Articles</a>
                     <a href="lessonDisplay_direct.php" class="nav-item nav-link active">Education Corner</a>
+                    <a href="../User-signup/viewProfile.php" class="nav-item nav-link">Profile</a>
+
                 </div>
             </div>
         </nav>
@@ -224,7 +220,14 @@
                             <div class="lesson-card">
                                 <div class="lesson-image">
                                     <?php if (!empty($lesson['image'])): ?>
-                                        <img src="<?php echo htmlspecialchars($lesson['image']); ?>" alt="<?php echo htmlspecialchars($lesson['title']); ?>">
+                                        <?php 
+                                            $imageName = $lesson['image'];
+                                            // If stored path includes directory, extract just the filename
+                                            if (strpos($imageName, '/') !== false) {
+                                                $imageName = basename($imageName);
+                                            }
+                                        ?>
+                                        <img src="../assets/uploads/lessons/<?php echo urlencode($imageName); ?>" alt="<?php echo htmlspecialchars($lesson['title']); ?>">
                                     <?php else: ?>
                                         <i class="fas fa-book-open"></i>
                                     <?php endif; ?>

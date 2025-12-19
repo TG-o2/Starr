@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/admin_guard.php';
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../Controller/PointTransactionController.php';
 
@@ -130,7 +131,7 @@ if (isset($_GET['edit_id'])) {
           <div class="bg-white py-2 collapse-inner rounded">
             <h6 class="collapse-header">Shortcuts:</h6>
             <a class="collapse-item" href="Admin Moderation/Ban.html">Ban</a>
-            <a class="collapse-item" href="Admin Moderation/Unban.html">Unban</a>
+            <a class="collapse-item" href="../Post/Post-backoffice.php">Posts</a>
             <a class="collapse-item" href="User/list_users.php">View Profiles</a>
             <div class="collapse-divider"></div>
           </div>

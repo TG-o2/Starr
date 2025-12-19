@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../admin_guard.php';
 require_once "../../../Controller/UserController.php";
 
 $controller = new UserController();

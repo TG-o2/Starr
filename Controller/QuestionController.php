@@ -1,176 +1,192 @@
 <?php
+declare(strict_types=1);
+
 require_once __DIR__ . '/../Model/Question.php';
 require_once __DIR__ . '/../Model/Lesson.php';
 
 class QuestionController
 {
     private QuestionModel $model;
-    private LessonModel $lessonModel;
 
     public function __construct()
     {
         $this->model = new QuestionModel();
-        $this->lessonModel = new LessonModel();
     }
 
-    public function list(): void
+    public function list(int $page = 1, array $filters = []): void
     {
-        $questions = $this->model->getAll();
+        $perPage = 10;
+        $offset = ($page - 1) * $perPage;
+        
+        $questions = $this->model->getAll($filters, $perPage, $offset);
+        $totalQuestions = $this->model->countAll($filters);
+        $totalPages = ceil($totalQuestions / $perPage);
+        
         require __DIR__ . '/../View/Back office/Education Corner/questionList.php';
     }
 
     public function add(array $postData = []): void
     {
-        $lessons = $this->lessonModel->getAll();
+        $error = null;
+        $success = $_SESSION['success'] ?? null;
+        unset($_SESSION['success']);
+
+        // Fetch lessons for dropdown
+        $lessonModel = new LessonModel();
+        $lessons = $lessonModel->getAll([], 0, 0);
 
         if (!empty($postData)) {
-            $data = [
-                'lessonId' => (int) ($postData['lessonId'] ?? 0),
-                'questionText' => trim($postData['questionText'] ?? ''),
-                'option1' => trim($postData['option1'] ?? ''),
-                'option2' => trim($postData['option2'] ?? ''),
-                'option3' => trim($postData['option3'] ?? ''),
-                'goodAnswer' => trim($postData['goodAnswer'] ?? ''),
-                'points' => max(1, (int) ($postData['points'] ?? 5)),
-            ];
-
-            if ($data['lessonId'] <= 0 || $data['questionText'] === '' || $data['goodAnswer'] === '') {
-                $error = 'Please fill all required fields.';
-                require __DIR__ . '/../View/Back office/Education Corner/questionForm.php';
-                return;
+            try {
+                $this->validateQuestionData($postData);
+                
+                $data = [
+                    'lessonId' => (int)$postData['lessonId'],
+                    'question' => trim($postData['question']),
+                    'optionA' => trim($postData['optionA']),
+                    'optionB' => trim($postData['optionB']),
+                    'optionC' => trim($postData['optionC']),
+                    'optionD' => trim($postData['optionD']),
+                    'goodAnswer' => trim($postData['goodAnswer']),
+                    'points' => (int)($postData['points'] ?? 5),
+                    'difficulty' => $postData['difficulty'] ?? 'easy',
+                    'time_limit' => (int)($postData['time_limit'] ?? 0),
+                    'explanation' => trim($postData['explanation'] ?? ''),
+                ];
+                
+                $this->model->create($data);
+                
+                $_SESSION['success'] = 'Question added successfully!';
+                header('Location: questionList_direct.php?lessonId=' . $data['lessonId']);
+                exit;
+                
+            } catch (Exception $e) {
+                $error = $e->getMessage();
             }
-
-            if ($data['option1'] === '' || $data['option2'] === '') {
-                $error = 'At least 2 options are required.';
-                require __DIR__ . '/../View/Back office/Education Corner/questionForm.php';
-                return;
-            }
-
-            $this->model->create($data);
-            header('Location: questionList_direct.php');
-            exit;
         }
 
-                require __DIR__ . '/../View/Back office/Education Corner/questionForm.php';
+        require __DIR__ . '/../View/Back office/Education Corner/questionForm.php';
     }
 
     public function edit(int $questionId, array $postData = []): void
     {
-        $question = $this->model->getOne($questionId);
+        $question = $this->model->getById($questionId);
         if (!$question) {
             echo 'Question not found';
             exit;
         }
 
-        $lessons = $this->lessonModel->getAll();
+        $error = null;
+        $success = $_SESSION['success'] ?? null;
+        unset($_SESSION['success']);
+
+        // Fetch lessons for dropdown
+        $lessonModel = new LessonModel();
+        $lessons = $lessonModel->getAll([], 0, 0);
 
         if (!empty($postData)) {
-            $data = [
-                'questionText' => trim($postData['questionText'] ?? ''),
-                'option1' => trim($postData['option1'] ?? ''),
-                'option2' => trim($postData['option2'] ?? ''),
-                'option3' => trim($postData['option3'] ?? ''),
-                'goodAnswer' => trim($postData['goodAnswer'] ?? ''),
-                'points' => max(1, (int) ($postData['points'] ?? 5)),
-            ];
-
-            if ($data['questionText'] === '' || $data['goodAnswer'] === '') {
-                $error = 'Please fill all required fields.';
-                require __DIR__ . '/../View/Back office/Education Corner/questionForm.php';
-                return;
+            try {
+                $this->validateQuestionData($postData);
+                
+                $data = [
+                    'question' => trim($postData['question']),
+                    'optionA' => trim($postData['optionA']),
+                    'optionB' => trim($postData['optionB']),
+                    'optionC' => trim($postData['optionC']),
+                    'optionD' => trim($postData['optionD']),
+                    'goodAnswer' => trim($postData['goodAnswer']),
+                    'points' => (int)($postData['points'] ?? 5),
+                    'difficulty' => $postData['difficulty'] ?? 'easy',
+                    'time_limit' => (int)($postData['time_limit'] ?? 0),
+                    'explanation' => trim($postData['explanation'] ?? ''),
+                ];
+                
+                $this->model->update($questionId, $data);
+                
+                $question = $this->model->getById($questionId);
+                $success = 'Question updated successfully!';
+                
+            } catch (Exception $e) {
+                $error = $e->getMessage();
             }
-
-            if ($data['option1'] === '' || $data['option2'] === '') {
-                $error = 'At least 2 options are required.';
-                require __DIR__ . '/../View/Back office/Education Corner/questionForm.php';
-                return;
-            }
-
-            $this->model->update($questionId, $data);
-            header('Location: questionList_direct.php');
-            exit;
         }
 
-                require __DIR__ . '/../View/Back office/Education Corner/questionForm.php';
+        require __DIR__ . '/../View/Back office/Education Corner/questionForm.php';
     }
 
     public function delete(int $questionId): void
     {
-        $this->model->delete($questionId);
-        header('Location: questionList_direct.php');
-        exit;
-    }
-
-    public function getQuestionWithLesson(int $questionId): ?array
-    {
-        $question = $this->model->getOne($questionId);
-        if ($question) {
-            $lesson = $this->lessonModel->getById($question['lessonId']);
-            $question['lesson'] = $lesson;
-        }
-        return $question ?: null;
-    }
-
-    public function getQuestionsByLesson(int $lessonId): array
-    {
-        return $this->model->getByLesson($lessonId) ?? [];
-    }
-
-    public function checkAnswer(int $questionId, string $userAnswer): array
-    {
-        $question = $this->model->getOne($questionId);
-        if (!$question) {
-            return ['success' => false, 'message' => 'Question not found', 'isCorrect' => false];
-        }
-
-        $isCorrect = strtolower(trim($userAnswer)) === strtolower(trim($question['goodAnswer']));
-        return [
-            'success' => true,
-            'isCorrect' => $isCorrect,
-            'correctAnswer' => $question['goodAnswer'],
-            'points' => $isCorrect ? ($question['points'] ?? 0) : 0,
-        ];
-    }
-
-    public function validateAnswer(int $questionId, string $userAnswer): bool
-    {
-        $question = $this->model->getOne($questionId);
-        if (!$question || $userAnswer === '') {
-            return false;
-        }
-
-        if (($question['questionType'] ?? '') === 'true_false') {
-            return in_array(strtolower($userAnswer), ['true', 'false', 't', 'f', '1', '0'], true);
-        }
-
-        return true;
-    }
-
-    public function getQuestionStats(int $questionId): ?array
-    {
-        $question = $this->model->getOne($questionId);
-        if (!$question) {
-            return null;
-        }
-
-        return [
-            'questionId' => $question['questionId'],
-            'lessonId' => $question['lessonId'],
-            'questionText' => $question['questionText'],
-            'questionType' => $question['questionType'] ?? 'multiple_choice',
-            'points' => $question['points'] ?? 1,
-            'optionCount' => $this->countOptions($question),
-        ];
-    }
-
-    private function countOptions(array $question): int
-    {
-        $count = 0;
-        for ($i = 1; $i <= 4; $i++) {
-            if (!empty($question['option' . $i])) {
-                $count++;
+        try {
+            $question = $this->model->getById($questionId);
+            if (!$question) {
+                throw new Exception('Question not found');
             }
+            
+            $lessonId = $question['lessonId'];
+            $this->model->delete($questionId);
+            
+            $_SESSION['success'] = 'Question deleted successfully';
+            header('Location: questionList_direct.php?lessonId=' . $lessonId);
+            exit;
+            
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['error' => $e->getMessage()]);
         }
-        return $count;
+    }
+
+    public function getByLesson(int $lessonId): array
+    {
+        return $this->model->getByLesson($lessonId);
+    }
+
+    private function validateQuestionData(array $data): void
+    {
+        if (empty($data['lessonId']) || empty($data['question'])) {
+            throw new Exception('Lesson ID and question text are required');
+        }
+        
+        // Require at least two options (A and B). C/D are optional.
+        if (empty($data['optionA']) || empty($data['optionB'])) {
+            throw new Exception('At least options A and B are required');
+        }
+        
+        $options = [
+            'A' => trim($data['optionA'] ?? ''),
+            'B' => trim($data['optionB'] ?? ''),
+            'C' => trim($data['optionC'] ?? ''),
+            'D' => trim($data['optionD'] ?? ''),
+        ];
+        
+        if (empty($data['goodAnswer'])) {
+            throw new Exception('Correct answer must be selected');
+        }
+        
+        $validAnswers = ['A', 'B', 'C', 'D'];
+        if (!in_array($data['goodAnswer'], $validAnswers)) {
+            throw new Exception('Invalid correct answer selection');
+        }
+        
+        // Ensure the chosen correct answer refers to a non-empty option
+        $chosen = $data['goodAnswer'];
+        if (empty($options[$chosen])) {
+            throw new Exception('Correct answer must reference a filled option');
+        }
+        
+        $points = (int)($data['points'] ?? 5);
+        if ($points < 1 || $points > 100) {
+            throw new Exception('Points must be between 1 and 100');
+        }
+        
+        $difficulty = $data['difficulty'] ?? 'easy';
+        $validDifficulties = ['easy', 'medium', 'hard'];
+        if (!in_array($difficulty, $validDifficulties)) {
+            throw new Exception('Invalid difficulty level');
+        }
+        
+        $timeLimit = (int)($data['time_limit'] ?? 0);
+        if ($timeLimit < 0 || $timeLimit > 600) {
+            throw new Exception('Time limit must be between 0 and 600 seconds');
+        }
     }
 }
+?>

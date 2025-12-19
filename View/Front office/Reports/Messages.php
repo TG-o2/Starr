@@ -125,18 +125,12 @@ if ($selectedReport) {
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-    <link href="https://fonts.googleapis.com/css2?family=Handlee&amp;family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Handlee&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Icon Font Stylesheet -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
-
-    <!-- Libraries Stylesheet (use Front office copies) -->
-    <link href="https://fonts.googleapis.com/css2?family=Coming+Soon&display=swap" rel="stylesheet">
-
-
-   
 
     <!-- Libraries Stylesheet -->
     <link href="../assets/lib/animate/animate.min.css" rel="stylesheet">
@@ -272,7 +266,7 @@ if ($selectedReport) {
         -->
 
 
-        <!-- Navbar Start -->
+         <!-- Navbar Start -->
         <nav class="navbar navbar-expand-lg bg-white navbar-light sticky-top px-4 px-lg-5 py-lg-0">
             <a class="navbar-brand">
                 <h1 class="m-0 text-primary"> <img src="../logo.jpeg" alt="Starr Logo" style="height: 60px; vertical-align: middle; margin-right: 8px;">
@@ -295,7 +289,7 @@ if ($selectedReport) {
                     <div class="nav-item dropdown">
                         <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Report</a>
                         <div class="dropdown-menu rounded-0 rounded-bottom border-0 m-0">
-                            <a href="Make-report.html" class="dropdown-item">Make a report</a>
+                            <a href="Make-report.html" class="dropdown-item ">Make a report</a>
                             <a href="Messages.php" class="dropdown-item active">Check response</a>
                         </div>
                     </div>
@@ -306,13 +300,14 @@ if ($selectedReport) {
                             <a href="../point system/badges.php" class="dropdown-item">Badges</a>
                         </div>
                     </div>
-                    <a href="../News/gestionnews.php" class="nav-item nav-link">Articles</a>
+                 <a href="../News/gestionnews.php" class="nav-item nav-link">Articles</a>
                     <a href="../Education Corner/lessonDetails.php" class="nav-item nav-link">Education Corner</a>
                     <a href="../User-signup/viewProfile.php" class="nav-item nav-link">View Profile</a>
                 </div>
             </div>
         </nav>
         <!-- Navbar End -->
+         
          
         <!-- Page Header End -->
         <div class="container-xxl py-5 page-header position-relative mb-5">

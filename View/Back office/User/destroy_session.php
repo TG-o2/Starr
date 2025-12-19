@@ -1,9 +1,9 @@
 <?php
+require_once __DIR__ . '/../admin_guard.php';
 /**
  * TESTING BYPASS - Destroys test session
  */
 
-session_start();
 session_unset();
 session_destroy();
 

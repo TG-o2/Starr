@@ -186,13 +186,7 @@
 
 <body>
     <div class="container-xxl bg-white p-0">
-        <!-- Spinner Start -->
-        <div id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
-            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-                <span class="sr-only">Loading...</span>
-            </div>
-        </div>
-        <!-- Spinner End -->
+        
 
         <!-- Navbar Start -->
         <nav class="navbar navbar-expand-lg bg-white navbar-light sticky-top px-4 px-lg-5 py-lg-0">
@@ -272,7 +266,14 @@
 
                     <?php if (!empty($lesson['image'])): ?>
                         <div class="lesson-image-container">
-                            <img src="<?php echo htmlspecialchars($lesson['image']); ?>" alt="<?php echo htmlspecialchars($lesson['title']); ?>">
+                            <?php 
+                                $imageName = $lesson['image'];
+                                // If stored path includes directory, extract just the filename
+                                if (strpos($imageName, '/') !== false) {
+                                    $imageName = basename($imageName);
+                                }
+                            ?>
+                            <img src="../assets/uploads/lessons/<?php echo urlencode($imageName); ?>" alt="<?php echo htmlspecialchars($lesson['title']); ?>">
                         </div>
                     <?php endif; ?>
                 </div>
@@ -292,19 +293,25 @@
 
                     <?php if (!empty($questions)): ?>
                         <?php foreach ($questions as $index => $question): ?>
+                            <?php 
+                                // New schema uses question / optionA-D
+                                $questionText = $question['question'] ?? '';
+                                $options = [
+                                    'A' => $question['optionA'] ?? '',
+                                    'B' => $question['optionB'] ?? '',
+                                    'C' => $question['optionC'] ?? '',
+                                    'D' => $question['optionD'] ?? '',
+                                ];
+                            ?>
                             <div class="question-item">
                                 <div class="question-number">Question <?php echo $index + 1; ?></div>
-                                <div class="question-text"><?php echo htmlspecialchars($question['questionText']); ?></div>
+                                <div class="question-text"><?php echo htmlspecialchars($questionText); ?></div>
                                 <ul class="option-list">
-                                    <?php if (!empty($question['option1'])): ?>
-                                        <li><i class="fas fa-circle" style="font-size: 0.4rem; color: #FE6B8B; margin-right: 10px;"></i><?php echo htmlspecialchars($question['option1']); ?></li>
-                                    <?php endif; ?>
-                                    <?php if (!empty($question['option2'])): ?>
-                                        <li><i class="fas fa-circle" style="font-size: 0.4rem; color: #FE6B8B; margin-right: 10px;"></i><?php echo htmlspecialchars($question['option2']); ?></li>
-                                    <?php endif; ?>
-                                    <?php if (!empty($question['option3'])): ?>
-                                        <li><i class="fas fa-circle" style="font-size: 0.4rem; color: #FE6B8B; margin-right: 10px;"></i><?php echo htmlspecialchars($question['option3']); ?></li>
-                                    <?php endif; ?>
+                                    <?php foreach ($options as $label => $text): ?>
+                                        <?php if (!empty($text)): ?>
+                                            <li><i class="fas fa-circle" style="font-size: 0.4rem; color: #FE6B8B; margin-right: 10px;"></i><strong><?php echo $label; ?>.</strong> <?php echo htmlspecialchars($text); ?></li>
+                                        <?php endif; ?>
+                                    <?php endforeach; ?>
                                 </ul>
                             </div>
                         <?php endforeach; ?>

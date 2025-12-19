@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../teacher_admin_guard.php';
 // Include your controllers at the very top
 require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../../Controller/newsController.php';
@@ -221,7 +222,7 @@ $settings_file = __DIR__ . '/platform_settings.json';
 $platform_settings = [
     'site_name' => 'News Platform',
     'theme' => 'light',
-    'primary_color' => '#1a73e8',
+    'primary_color' => '#1cc88a',
     'secondary_color' => '#34a853',
     'font_family' => 'Roboto, Arial, sans-serif'
 ];
@@ -236,7 +237,7 @@ if (file_exists($settings_file)) {
 // Ensure all required keys exist with safe array access
 $site_name = $platform_settings['site_name'] ?? 'News Platform';
 $theme = $platform_settings['theme'] ?? 'light';
-$primary_color = $platform_settings['primary_color'] ?? '#1a73e8';
+$primary_color = $platform_settings['primary_color'] ?? '#1cc88a';
 $secondary_color = $platform_settings['secondary_color'] ?? '#34a853';
 $font_family = $platform_settings['font_family'] ?? 'Roboto, Arial, sans-serif';
 
@@ -282,7 +283,7 @@ if (isset($_GET['edit_id'])) {
             --text-secondary: #5f6368;
             --border-color: #dadce0;
             --shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-            --sidebar-bg: #4e73df;
+            --sidebar-bg: #1cc88a;
             --sidebar-text: #ffffff;
             --topbar-bg: #ffffff;
             --topbar-text: #5a5c69;
@@ -336,6 +337,16 @@ if (isset($_GET['edit_id'])) {
         .btn-primary {
             background-color: var(--primary-color) !important;
             border-color: var(--primary-color) !important;
+        }
+
+        .btn-success {
+            background-color: #1cc88a !important;
+            border-color: #1cc88a !important;
+        }
+
+        .btn-success:hover {
+            background-color: #13855c !important;
+            border-color: #13855c !important;
         }
 
         .btn-outline-primary {
@@ -954,8 +965,8 @@ if (isset($_GET['edit_id'])) {
     </div>
 
     <div id="wrapper">
-        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="../Admin Dashboard/Dashboard.html">
+        <ul class="navbar-nav bg-gradient-success sidebar sidebar-dark accordion" id="accordionSidebar">
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="../Teacher Dashboard/Dashboard.php">
                 <div class="sidebar-brand-icon rotate-n-15">
                     <i class="fas fa-laugh-wink"></i>
                 </div>
@@ -993,7 +1004,7 @@ if (isset($_GET['edit_id'])) {
                         <div class="input-group">
                             <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2">
                             <div class="input-group-append">
-                                <button class="btn btn-primary" type="button">
+                                <button class="btn btn-success" type="button">
                                     <i class="fas fa-search fa-sm"></i>
                                 </button>
                             </div>
@@ -1003,7 +1014,6 @@ if (isset($_GET['edit_id'])) {
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">Admin User</span>
-                                <img class="img-profile rounded-circle" src="img/undraw_profile.svg">
                             </a>
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
                                 <a class="dropdown-item" href="#">
@@ -1044,7 +1054,7 @@ if (isset($_GET['edit_id'])) {
                                         <label for="editArticleImage">Article Image</label>
                                         <?php if (!empty($editNews['image'])): ?>
                                             <div class="mb-2">
-                                                <img src="/Cosmosweb/uploads/news/<?php echo htmlspecialchars($editNews['image']); ?>" alt="Current image" style="max-width: 200px; height: auto;" class="img-thumbnail">
+                                                <img src="../../../uploads/news/<?php echo htmlspecialchars($editNews['image']); ?>" alt="Current image" style="max-width: 200px; height: auto;" class="img-thumbnail">
                                                 <p class="text-muted small">Current image</p>
                                             </div>
                                         <?php endif; ?>
@@ -1118,7 +1128,7 @@ if (isset($_GET['edit_id'])) {
                                         <small class="form-text text-muted">Write the article content (min 10 characters).</small>
                                         <small id="articleContentError" class="error-msg">Content must be at least 10 characters.</small>
                                     </div>
-                                    <button type="submit" class="btn btn-primary" id="addArticleBtn">Add Article</button>
+                                    <button type="submit" class="btn btn-success" id="addArticleBtn">Add Article</button>
                                 </form>
                             <?php endif; ?>
                         </div>
@@ -1155,7 +1165,7 @@ if (isset($_GET['edit_id'])) {
                                     <!-- Article Card -->
                                     <div class="article-card d-flex gap-3 align-items-start">
                                         <?php if (!empty($news['image'])): ?>
-                                            <img src="/Cosmosweb/uploads/news/<?php echo htmlspecialchars($news['image']); ?>" alt="<?php echo htmlspecialchars($news['title']); ?>">
+                                            <img src="../../../uploads/news/<?php echo htmlspecialchars($news['image']); ?>" alt="<?php echo htmlspecialchars($news['title']); ?>">
                                         <?php else: ?>
                                             <img src="../kider-1.0.0/img/carousel-1.jpg" alt="Default news image">
                                         <?php endif; ?>
@@ -1245,7 +1255,7 @@ if (isset($_GET['edit_id'])) {
                                                 <input type="hidden" name="news_id" value="<?php echo $news['newsid']; ?>">
                                                 <div class="input-group input-group-lg">
                                                     <input type="text" class="form-control comment-input" name="comment_content" placeholder="Write a comment..." >
-                                                    <button class="btn btn-primary comment-submit" type="submit">
+                                                    <button class="btn btn-success comment-submit" type="submit">
                                                         <i class="fas fa-paper-plane me-1"></i> Post Comment
                                                     </button>
                                                 </div>
@@ -1461,7 +1471,7 @@ if (isset($_GET['edit_id'])) {
                 const topbar = document.querySelector('.navbar-light');
                 
                 if (sidebar) {
-                    sidebar.classList.add('bg-gradient-primary');
+                    sidebar.classList.add('bg-gradient-success');
                     sidebar.classList.remove('bg-dark');
                 }
                 

@@ -52,19 +52,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Create and save user with verification
+    // Create and save user with email verification
     $user = new User(
-        uniqid("USR_"),
-        $email,
-        $_POST['password'],
-        $_POST['fname'],
-        $_POST['lname'],
-        $_POST['DOB'],
-        $_POST['role'],
-        $avatarName,
-        $_POST['description'] ?? ''
+        uniqid("USR_"),                 // user_id
+        $_POST['password'],             // password
+        $_POST['fname'],                // fname
+        $_POST['lname'],                // lname
+        $_POST['DOB'],                  // DOB
+        null,                           // profilePicture
+        $_POST['description'] ?? '',    // description
+        null,                           // username
+        $email,                         // email
+        $_POST['role'],                 // role
+        $avatarName,                    // avatar
+        0,                              // verified (requires email verification)
+        0,                              // is_banned
+        0,                              // is_approved (0 - needs admin approval for teachers)
+        null,                           // verification_token (set inside controller)
+        null                            // approval_token
     );
 
+    // Send verification email and persist user
     $controller->addUserWithVerification($user);
 
     $_SESSION['signup_success'] = "Account created! Please check your email (including spam) for the verification link.";

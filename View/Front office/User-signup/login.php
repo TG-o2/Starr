@@ -52,14 +52,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($user && password_verify($password, $user['password'])) {
 
             if ((int)$user['verified'] === 0) {
-                // Auto-resend verification email when unverified (after logout)
-                if ($controller->resendVerificationEmail($email)) {
-                    $error = "Your session has expired for security. A new verification email has been sent to <strong>{$email}</strong>. Please check your inbox and spam folder.";
-                } else {
-                    $error = "Account requires verification, but email sending failed. Please try again later.";
-                }
+              // Auto-resend verification email when unverified
+              if ($controller->resendVerificationEmail($email)) {
+                $error = "Your account is not verified. A new verification email has been sent to <strong>{$email}</strong>. Please check your inbox and spam folder.";
+              } else {
+                $error = "Account requires verification, but email sending failed. Please try again later.";
+              }
             }
-
             elseif ((int)$user['is_banned'] === 1) {
                 $error = "Your account has been banned. Please contact support.";
             }

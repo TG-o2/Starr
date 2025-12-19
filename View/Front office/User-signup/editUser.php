@@ -186,11 +186,9 @@ if (isset($_GET['delete']) && $_GET['delete'] == 1) {
         </button>
 
         <div class="collapse navbar-collapse" id="navbarCollapse">
-            <div class="navbar-nav mx-auto">
-                <a href="index.html" class="nav-item nav-link">Home</a>
-                <a href="about.html" class="nav-item nav-link">About Us</a>
-                <a href="classes.html" class="nav-item nav-link">Classes</a>
-                <a href="contact.html" class="nav-item nav-link">Contact Us</a>
+            <div class="navbar-nav mx-auto"></div>
+                <a href="../index.html" class="nav-item nav-link">Home</a>
+                <a href="viewProfile.php" class="nav-item nav-link">Profile</a>
             </div>
 
             <a href="?delete=1" class="btn btn-danger rounded-pill px-3 d-none d-lg-block">

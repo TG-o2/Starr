@@ -14,20 +14,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Handle file upload
     $image = null;
     if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = __DIR__ . '/../uploads/news/';
-        
+        // Store images in the ROOT /uploads/news folder (accessible from front office)
+        $uploadDir = __DIR__ . '/../../../uploads/news/';
+
         // Create directory if it doesn't exist
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true);
         }
-        
+
         $imageName = time() . '_' . basename($_FILES['image']['name']);
         $imagePath = $uploadDir . $imageName;
-        
+
         if (move_uploaded_file($_FILES['image']['tmp_name'], $imagePath)) {
-    // Store the path relative to your current location
-    $image = 'uploads/news/' . $imageName;
-}
+            // Store only the filename; rendering will prepend uploads/news/
+            $image = $imageName;
+        }
     }
     
     // Validate required fields

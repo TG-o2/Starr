@@ -14,20 +14,17 @@
 <body id="page-top">
 <div id="wrapper">
   <!-- Sidebar -->
-  <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
-    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="../Admin Dashboard/Dashboard.html">
-      <div class="sidebar-brand-icon rotate-n-15"><i class="fas fa-laugh-wink"></i></div>
-      <div class="sidebar-brand-text mx-3">Teacher Starr<sup>*</sup></div>
+  <ul class="navbar-nav bg-gradient-success sidebar sidebar-dark accordion" id="accordionSidebar">
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="Dashboard.php">
+      <div class="sidebar-brand-icon rotate-n-15"><i class="fas fa-chalkboard-teacher"></i></div>
+      <div class="sidebar-brand-text mx-3">Teacher Starr</div>
     </a>
     <hr class="sidebar-divider my-0">
-    <li class="nav-item"><a class="nav-link" href="../Admin Dashboard/Dashboard.html"><i class="fas fa-fw fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="../Teacher Dashboard/Dashboard.php"><i class="fas fa-fw fa-tachometer-alt"></i><span>Dashboard</span></a></li>
     <hr class="sidebar-divider">
     <div class="sidebar-heading">Education Corner</div>
     <li class="nav-item"><a class="nav-link" href="lessonList_direct.php"><i class="fas fa-book"></i><span>Lessons</span></a></li>
     <li class="nav-item active"><a class="nav-link" href="questionList_direct.php"><i class="fas fa-question-circle"></i><span>Questions</span></a></li>
-    <hr class="sidebar-divider">
-    <div class="sidebar-heading">Other Modules</div>
-    <li class="nav-item"><a class="nav-link" href="../Admin Moderation/Review-list.php"><i class="fa-solid fa-flag"></i><span>Reports</span></a></li>
     <hr class="sidebar-divider d-none d-md-block">
     <div class="text-center d-none d-md-inline">
       <button class="rounded-circle border-0" id="sidebarToggle"></button>
@@ -39,14 +36,14 @@
       <!-- Topbar -->
       <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
         <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3"><i class="fa fa-bars"></i></button>
-        <h5 class="m-0 font-weight-bold text-primary">Education Corner Management</h5>
+        <h5 class="m-0 font-weight-bold text-success">Education Corner Management</h5>
       </nav>
 
       <!-- Page Content -->
       <div class="container-fluid">
         <div class="d-sm-flex align-items-center justify-content-between mb-4">
           <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-question-circle"></i> Questions Management</h1>
-          <a href="questionForm_direct.php" class="btn btn-primary btn-icon-split">
+          <a href="questionForm_direct.php" class="btn btn-success btn-icon-split">
             <span class="icon text-white-50"><i class="fas fa-plus"></i></span>
             <span class="text">Add New Question</span>
           </a>
@@ -57,8 +54,42 @@
             <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-list"></i> All Questions</h6>
           </div>
           <div class="card-body">
+            <!-- Search and Filter Section -->
+            <div class="row mb-4">
+              <div class="col-md-5">
+                <input type="text" class="form-control" id="searchInput" placeholder="Search by question text...">
+              </div>
+              <div class="col-md-3">
+                <select class="form-control" id="filterLesson">
+                  <option value="">All Lessons</option>
+                  <?php 
+                    $uniqueLessons = [];
+                    if (!empty($questions)) {
+                      foreach ($questions as $q) {
+                        if (!empty($q['lessonTitle']) && !in_array($q['lessonTitle'], $uniqueLessons)) {
+                          $uniqueLessons[] = $q['lessonTitle'];
+                          echo '<option value="' . htmlspecialchars(strtolower($q['lessonTitle'])) . '">' . htmlspecialchars($q['lessonTitle']) . '</option>';
+                        }
+                      }
+                    }
+                  ?>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <select class="form-control" id="filterPoints">
+                  <option value="">All Points</option>
+                  <option value="5">5 pts</option>
+                  <option value="10">10 pts</option>
+                  <option value="15">15 pts</option>
+                  <option value="20">20+ pts</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <button class="btn btn-secondary btn-block" onclick="resetFilters()">Reset Filters</button>
+              </div>
+            </div>
             <div class="table-responsive">
-              <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+              <table class="table table-bordered table-hover" id="questionsTable" width="100%" cellspacing="0">
                 <thead>
                   <tr>
                     <th>ID</th>
@@ -69,15 +100,21 @@
                     <th>Actions</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody id="questionsTableBody">
                   <?php if(!empty($questions)): ?>
                     <?php foreach($questions as $q): ?>
-                      <tr>
+                      <?php 
+                        $questionText = $q['question'] ?? '';
+                        $questionPreview = substr($questionText, 0, 70);
+                        $lessonTitle = $q['lesson_title'] ?? 'Unknown';
+                        $points = (int)($q['points'] ?? 5);
+                      ?>
+                      <tr class="question-row" data-question="<?= strtolower(htmlspecialchars($questionPreview)) ?>" data-lesson="<?= strtolower(htmlspecialchars($lessonTitle)) ?>" data-points="<?= $points ?>">
                         <td><?= $q['questionId'] ?></td>
-                        <td><?= htmlspecialchars(substr($q['questionText'], 0, 70)) ?><?= strlen($q['questionText']) > 70 ? '...' : '' ?></td>
-                        <td><span class="badge badge-primary"><?= htmlspecialchars($q['lessonTitle'] ?? 'Unknown') ?></span></td>
-                        <td><span class="badge badge-success"><?= htmlspecialchars($q['goodAnswer']) ?></span></td>
-                        <td class="text-center"><span class="badge badge-warning"><i class="fas fa-star"></i> <?= htmlspecialchars($q['points'] ?? 5) ?> pts</span></td>
+                        <td><?= htmlspecialchars($questionPreview) ?><?= strlen($questionText) > 70 ? '...' : '' ?></td>
+                        <td><span class="badge badge-primary"><?= htmlspecialchars($lessonTitle) ?></span></td>
+                        <td><span class="badge badge-success"><?= htmlspecialchars($q['goodAnswer'] ?? '') ?></span></td>
+                        <td class="text-center"><span class="badge badge-warning"><i class="fas fa-star"></i> <?= htmlspecialchars($points) ?> pts</span></td>
                         <td class="text-center">
                           <a href="questionForm_direct.php?questionId=<?= $q['questionId'] ?>" class="btn btn-info btn-circle btn-sm" title="Edit">
                             <i class="fas fa-edit"></i>
@@ -124,5 +161,53 @@
 <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="../assets/vendor/jquery-easing/jquery.easing.min.js"></script>
 <script src="../assets/js/sb-admin-2.min.js"></script>
+
+<script>
+function filterQuestions() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const lessonFilter = document.getElementById('filterLesson').value.toLowerCase();
+    const pointsFilter = document.getElementById('filterPoints').value;
+    const rows = document.querySelectorAll('.question-row');
+    
+    rows.forEach(row => {
+        let show = true;
+        
+        // Search filter
+        if (searchTerm) {
+            const question = row.getAttribute('data-question');
+            show = question.includes(searchTerm);
+        }
+        
+        // Lesson filter
+        if (show && lessonFilter) {
+            const lesson = row.getAttribute('data-lesson');
+            show = lesson === lessonFilter;
+        }
+        
+        // Points filter
+        if (show && pointsFilter) {
+            const points = parseInt(row.getAttribute('data-points'));
+            if (pointsFilter === '5') show = points === 5;
+            else if (pointsFilter === '10') show = points === 10;
+            else if (pointsFilter === '15') show = points === 15;
+            else if (pointsFilter === '20') show = points >= 20;
+        }
+        
+        row.style.display = show ? '' : 'none';
+    });
+}
+
+function resetFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('filterLesson').value = '';
+    document.getElementById('filterPoints').value = '';
+    filterQuestions();
+}
+
+// Add event listeners
+document.getElementById('searchInput').addEventListener('keyup', filterQuestions);
+document.getElementById('filterLesson').addEventListener('change', filterQuestions);
+document.getElementById('filterPoints').addEventListener('change', filterQuestions);
+</script>
 </body>
 </html>

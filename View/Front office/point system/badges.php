@@ -120,7 +120,6 @@ $leaderboard = $leaderboard_result['success'] ? $leaderboard_result['data'] : []
             </div>
             <div class="nav-buttons">
                 <a href="my-points.php" class="btn btn-outline-secondary btn-sm">My Points</a>
-                <a href="PointShop.html" class="btn btn-outline-secondary btn-sm">Point Shop</a>
                 <a href="../index.html" class="btn btn-outline-secondary btn-sm">Home</a>
             </div>
         </div>

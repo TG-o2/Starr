@@ -21,25 +21,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     foreach ($questions as $question) {
         $questionId = $question['questionId'];
+        $options = [
+            'A' => $question['optionA'] ?? '',
+            'B' => $question['optionB'] ?? '',
+            'C' => $question['optionC'] ?? '',
+            'D' => $question['optionD'] ?? '',
+        ];
+
         $userAnswer = $_POST['q' . $questionId] ?? '';
         $correctAnswer = $question['goodAnswer'];
         $questionPoints = (int) ($question['points'] ?? 5);
         $maxPossiblePoints += $questionPoints;
 
-        $isCorrect = strtolower(trim($userAnswer)) === strtolower(trim($correctAnswer));
+        $isCorrect = strtoupper(trim($userAnswer)) === strtoupper(trim($correctAnswer));
         if ($isCorrect) {
             $correctAnswers++;
             $totalPointsEarned += $questionPoints;
         }
 
         $quizResults[] = [
-            'questionText' => $question['questionText'],
+            'questionText' => $question['question'] ?? '',
             'userAnswer' => $userAnswer,
+            'userAnswerText' => $options[$userAnswer] ?? '',
             'correctAnswer' => $correctAnswer,
+            'correctAnswerText' => $options[$correctAnswer] ?? '',
             'isCorrect' => $isCorrect,
-            'option1' => $question['option1'],
-            'option2' => $question['option2'],
-            'option3' => $question['option3'] ?? null,
+            'options' => $options,
             'points' => $questionPoints,
         ];
     }
@@ -143,14 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <body>
     <div class="container-xxl bg-white p-0">
-        <!-- Spinner Start -->
-        <div id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
-            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-                <span class="sr-only">Loading...</span>
-            </div>
-        </div>
-        <!-- Spinner End -->
-
+        
         <!-- Navbar Start -->
         <nav class="navbar navbar-expand-lg bg-white navbar-light sticky-top px-4 px-lg-5 py-lg-0">
             <a class="navbar-brand">
@@ -188,6 +188,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <a href="../News/gestionnews.php" class="nav-item nav-link">Articles</a>
                     <a href="lessonDisplay_direct.php" class="nav-item nav-link active">Education Corner</a>
+                    <a href="../User-signup/viewProfile.php" class="nav-item nav-link">Profile</a>
+                    
                 </div>
             </div>
         </nav>
@@ -228,21 +230,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <form method="POST" class="quiz-form" id="quizForm">
                     <?php foreach ($questions as $index => $question): ?>
+                        <?php 
+                            $options = [
+                                'A' => $question['optionA'] ?? '',
+                                'B' => $question['optionB'] ?? '',
+                                'C' => $question['optionC'] ?? '',
+                                'D' => $question['optionD'] ?? '',
+                            ];
+                        ?>
                         <div class="question-card">
                             <span class="question-number">Question <?php echo $index + 1; ?> of <?php echo count($questions); ?></span>
-                            <div class="question-text"><?php echo htmlspecialchars($question['questionText']); ?></div>
+                            <div class="question-text"><?php echo htmlspecialchars($question['question'] ?? ''); ?></div>
 
                             <div class="options">
-                                <?php for ($i = 1; $i <= 4; $i++): ?>
-                                    <?php if (!empty($question['option' . $i])): ?>
+                                <?php foreach ($options as $label => $text): ?>
+                                    <?php if (!empty($text)): ?>
                                         <div class="option-item">
-                                            <input type="radio" id="q<?php echo $question['questionId']; ?>_opt<?php echo $i; ?>" name="q<?php echo $question['questionId']; ?>" value="<?php echo htmlspecialchars($question['option' . $i]); ?>" required>
-                                            <label class="option-label" for="q<?php echo $question['questionId']; ?>_opt<?php echo $i; ?>">
-                                                <?php echo htmlspecialchars($question['option' . $i]); ?>
+                                            <input type="radio" id="q<?php echo $question['questionId']; ?>_opt<?php echo $label; ?>" name="q<?php echo $question['questionId']; ?>" value="<?php echo $label; ?>" required>
+                                            <label class="option-label" for="q<?php echo $question['questionId']; ?>_opt<?php echo $label; ?>">
+                                                <strong><?php echo $label; ?>.</strong> <?php echo htmlspecialchars($text); ?>
                                             </label>
                                         </div>
                                     <?php endif; ?>
-                                <?php endfor; ?>
+                                <?php endforeach; ?>
                             </div>
                         </div>
                         <?php endforeach; ?>
@@ -308,11 +318,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                             <div class="result-answer">
                                 <span class="result-icon <?php echo $result['isCorrect'] ? 'correct' : 'incorrect'; ?>"></span>
-                                Your answer: <strong><?php echo $result['userAnswer'] !== '' ? htmlspecialchars($result['userAnswer']) : '(Not answered)'; ?></strong>
+                                Your answer: <strong>
+                                    <?php 
+                                        if ($result['userAnswer'] === '') {
+                                            echo '(Not answered)';
+                                        } else {
+                                            $ua = strtoupper($result['userAnswer']);
+                                            $uaText = $result['userAnswerText'] ?? '';
+                                            echo $ua;
+                                            if (!empty($uaText)) {
+                                                echo ' - ' . htmlspecialchars($uaText);
+                                            }
+                                        }
+                                    ?>
+                                </strong>
                             </div>
                             <?php if (!$result['isCorrect']): ?>
                                 <div class="result-answer" style="color: #4caf50; font-weight: 600;">
-                                    <i class="fas fa-check-circle"></i> Correct answer: <strong><?php echo htmlspecialchars($result['correctAnswer']); ?></strong>
+                                    <?php $caText = $result['correctAnswerText'] ?? ''; ?>
+                                    <i class="fas fa-check-circle"></i> Correct answer: <strong><?php echo htmlspecialchars(strtoupper($result['correctAnswer'])); ?><?php echo !empty($caText) ? ' - ' . htmlspecialchars($caText) : ''; ?></strong>
                                 </div>
                             <?php endif; ?>
                         </div>

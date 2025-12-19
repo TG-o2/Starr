@@ -23,14 +23,14 @@ $stats = [
 ];
 
 try {
-    // Count lessons created by this teacher
-    $lessons_query = "SELECT COUNT(*) as count FROM lessons WHERE teacher_id = :teacher_id";
-    $stmt = $db->prepare($lessons_query);
+    // Count posts created by this teacher
+    $posts_query = "SELECT COUNT(*) as count FROM posts WHERE user_id = :teacher_id";
+    $stmt = $db->prepare($posts_query);
     $stmt->execute([':teacher_id' => $teacher_id]);
     $stats['total_lessons'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0;
     
     // Count news posted by this teacher
-    $news_query = "SELECT COUNT(*) as count FROM news WHERE created_by = :teacher_id";
+    $news_query = "SELECT COUNT(*) as count FROM news WHERE teacherid = :teacher_id";
     $stmt = $db->prepare($news_query);
     $stmt->execute([':teacher_id' => $teacher_id]);
     $stats['total_news'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0;
@@ -77,6 +77,7 @@ try {
     <!-- Custom fonts for this template-->
     <link href="../Admin Dashboard/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/9d17856d97.js" crossorigin="anonymous"></script>
 
     <!-- Custom styles for this template-->
     <link href="../assets/css/sb-admin-2.min.css" rel="stylesheet">
@@ -103,7 +104,7 @@ try {
 
             <!-- Nav Item - Dashboard -->
             <li class="nav-item active">
-                <a class="nav-link" href="Dashboard.php">
+                <a class="nav-link" href="../Teacher Dashboard/Dashboard.php">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Dashboard</span></a>
             </li>
@@ -118,18 +119,22 @@ try {
 
             <!-- Nav Item - News -->
             <li class="nav-item">
-                <a class="nav-link" href="../../Front office/News/index.php">
+                <a class="nav-link" href="../bacci/backoffice.php">
                     <i class="fas fa-fw fa-newspaper"></i>
                     <span>Manage News</span></a>
             </li>
 
-            <!-- Nav Item - Education Corner -->
+            <!-- Nav Item - Posts -->
             <li class="nav-item">
-                <a class="nav-link" href="../../Front office/education-corner.php">
+                <a class="nav-link" href="../Education Corner/lessonList.php">
                     <i class="fas fa-fw fa-book"></i>
-                    <span>Education Corner</span></a>
+                    <span>Manage Lessons</span></a>
             </li>
-
+            <li class="nav-item">
+                <a class="nav-link" href="../Teacher Dashboard/Dashboard.php">
+                    <i class="fas fa-fw fa-book"></i>
+                    <span>Home</span></a>
+            </li>
             <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">
 
@@ -173,7 +178,7 @@ try {
                                 aria-labelledby="userDropdown">
                                 <a class="dropdown-item" href="../../Front office/User-signup/viewProfile.php">
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Profile
+                                    Profiles
                                 </a>
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="../../../logout.php">
@@ -263,8 +268,8 @@ try {
                                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
                                                 Quick Access</div>
                                             <div class="btn-group btn-group-sm" role="group">
-                                                <a href="../../Front office/News/index.php" class="btn btn-warning btn-sm"><i class="fas fa-plus"></i> News</a>
-                                                <a href="../../Front office/education-corner.php" class="btn btn-warning btn-sm"><i class="fas fa-plus"></i> Lesson</a>
+                                                <a href="../bacci/backoffice.php" class="btn btn-warning btn-sm"><i class="fas fa-plus"></i> News</a>
+                                                <a href="../Post/Post-backoffice.php" class="btn btn-warning btn-sm"><i class="fas fa-plus"></i> Posts</a>
                                             </div>
                                         </div>
                                     </div>
@@ -316,9 +321,10 @@ try {
                                     <p><strong>Last Login:</strong> <?php echo htmlspecialchars($_SESSION['last_login'] ?? 'Today'); ?></p>
                                     <hr>
                                     <h6 class="font-weight-bold">Quick Links:</h6>
+                                    <h6 class="font-weight-bold">Quick Links:</h6>
                                     <ul class="list-unstyled">
-                                        <li><a href="../../Front office/News/index.php"><i class="fas fa-newspaper"></i> Manage News</a></li>
-                                        <li><a href="../../Front office/education-corner.php"><i class="fas fa-book"></i> Education Corner</a></li>
+                                        <li><a href="../bacci/backoffice.php"><i class="fas fa-newspaper"></i> Manage News</a></li>
+                                        <li><a href="../Education Corner/lessonList.php"><i class="fas fa-book"></i> Manage Lessons</a></li>
                                         <li><a href="../../Front office/User-signup/viewProfile.php"><i class="fas fa-user"></i> View Profile</a></li>
                                     </ul>
                                 </div>

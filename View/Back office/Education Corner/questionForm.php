@@ -14,20 +14,17 @@
 <body id="page-top">
 <div id="wrapper">
   <!-- Sidebar -->
-  <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
-    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="../Admin Dashboard/Dashboard.html">
-      <div class="sidebar-brand-icon rotate-n-15"><i class="fas fa-laugh-wink"></i></div>
-      <div class="sidebar-brand-text mx-3">Teacher Starr<sup>*</sup></div>
+  <ul class="navbar-nav bg-gradient-success sidebar sidebar-dark accordion" id="accordionSidebar">
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="Dashboard.php">
+      <div class="sidebar-brand-icon rotate-n-15"><i class="fas fa-chalkboard-teacher"></i></div>
+      <div class="sidebar-brand-text mx-3">Teacher Starr</div>
     </a>
     <hr class="sidebar-divider my-0">
-    <li class="nav-item"><a class="nav-link" href="../Admin Dashboard/Dashboard.html"><i class="fas fa-fw fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="../Teacher Dashboard/Dashboard.php"><i class="fas fa-fw fa-tachometer-alt"></i><span>Dashboard</span></a></li>
     <hr class="sidebar-divider">
     <div class="sidebar-heading">Education Corner</div>
     <li class="nav-item"><a class="nav-link" href="lessonList_direct.php"><i class="fas fa-book"></i><span>Lessons</span></a></li>
     <li class="nav-item active"><a class="nav-link" href="questionList_direct.php"><i class="fas fa-question-circle"></i><span>Questions</span></a></li>
-    <hr class="sidebar-divider">
-    <div class="sidebar-heading">Other Modules</div>
-    <li class="nav-item"><a class="nav-link" href="../Admin Moderation/Review-list.php"><i class="fa-solid fa-flag"></i><span>Reports</span></a></li>
     <hr class="sidebar-divider d-none d-md-block">
     <div class="text-center d-none d-md-inline">
       <button class="rounded-circle border-0" id="sidebarToggle"></button>
@@ -39,7 +36,7 @@
       <!-- Topbar -->
       <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
         <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3"><i class="fa fa-bars"></i></button>
-        <h5 class="m-0 font-weight-bold text-primary">Education Corner Management</h5>
+        <h5 class="m-0 font-weight-bold text-success">Education Corner Management</h5>
       </nav>
 
       <!-- Page Content -->
@@ -78,9 +75,29 @@
               </div>
 
               <div class="form-group">
-                <label for="questionText">Question Text <span class="text-danger">*</span></label>
-                <textarea class="form-control" id="questionText" name="questionText" rows="4" placeholder="Enter the question text"><?= htmlspecialchars($question['questionText'] ?? '') ?></textarea>
-                <span class="text-sm d-block mt-1" id="questionText-msg"></span>
+                <label for="question">Question Text <span class="text-danger">*</span></label>
+                <textarea class="form-control" id="question" name="question" rows="4" placeholder="Enter the question text"><?= htmlspecialchars($question['question'] ?? $question['questionText'] ?? '') ?></textarea>
+                <span class="text-sm d-block mt-1" id="question-msg"></span>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-md-4">
+                  <label for="difficulty">Difficulty</label>
+                  <select class="form-control" id="difficulty" name="difficulty">
+                    <option value="easy" <?= isset($question) && ($question['difficulty'] ?? '') == 'easy' ? 'selected' : '' ?>>Easy</option>
+                    <option value="medium" <?= isset($question) && ($question['difficulty'] ?? '') == 'medium' ? 'selected' : '' ?>>Medium</option>
+                    <option value="hard" <?= isset($question) && ($question['difficulty'] ?? '') == 'hard' ? 'selected' : '' ?>>Hard</option>
+                  </select>
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="time_limit">Time Limit (seconds)</label>
+                  <input type="number" class="form-control" id="time_limit" name="time_limit" min="10" max="600" value="<?= htmlspecialchars($question['time_limit'] ?? 60) ?>" placeholder="60">
+                  <small class="form-text text-muted">10-600 seconds</small>
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="points">Points <span class="text-danger">*</span></label>
+                  <input type="number" class="form-control" id="points" name="points" min="1" max="100" value="<?= htmlspecialchars($question['points'] ?? 5) ?>" placeholder="5">
+                </div>
               </div>
 
               <hr>
@@ -88,35 +105,47 @@
               
               <div class="form-row">
                 <div class="form-group col-md-6">
-                  <label for="option1">Option 1 <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control" id="option1" name="option1" value="<?= htmlspecialchars($question['option1'] ?? '') ?>" placeholder="First answer option">
-                  <span class="text-sm d-block mt-1" id="option1-msg"></span>
+                  <label for="optionA">Option A <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="optionA" name="optionA" value="<?= htmlspecialchars($question['optionA'] ?? $question['option1'] ?? '') ?>" placeholder="First answer option">
+                  <span class="text-sm d-block mt-1" id="optionA-msg"></span>
                 </div>
                 <div class="form-group col-md-6">
-                  <label for="option2">Option 2 <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control" id="option2" name="option2" value="<?= htmlspecialchars($question['option2'] ?? '') ?>" placeholder="Second answer option">
-                  <span class="text-sm d-block mt-1" id="option2-msg"></span>
+                  <label for="optionB">Option B <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="optionB" name="optionB" value="<?= htmlspecialchars($question['optionB'] ?? $question['option2'] ?? '') ?>" placeholder="Second answer option">
+                  <span class="text-sm d-block mt-1" id="optionB-msg"></span>
                 </div>
               </div>
 
-              <div class="form-group">
-                <label for="option3">Option 3 <span class="text-muted">(Optional)</span></label>
-                <input type="text" class="form-control" id="option3" name="option3" value="<?= htmlspecialchars($question['option3'] ?? '') ?>" placeholder="Third answer option (leave blank if only 2 options needed)">
-                <span class="text-sm d-block mt-1" id="option3-msg"></span>
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="optionC">Option C</label>
+                  <input type="text" class="form-control" id="optionC" name="optionC" value="<?= htmlspecialchars($question['optionC'] ?? $question['option3'] ?? '') ?>" placeholder="Third answer option (optional)">
+                  <span class="text-sm d-block mt-1" id="optionC-msg"></span>
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="optionD">Option D</label>
+                  <input type="text" class="form-control" id="optionD" name="optionD" value="<?= htmlspecialchars($question['optionD'] ?? '') ?>" placeholder="Fourth answer option (optional)">
+                  <span class="text-sm d-block mt-1" id="optionD-msg"></span>
+                </div>
               </div>
 
               <div class="form-group">
                 <label for="goodAnswer">Correct Answer <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="goodAnswer" name="goodAnswer" value="<?= htmlspecialchars($question['goodAnswer'] ?? '') ?>" placeholder="Enter the correct answer">
-                <small class="form-text text-muted"><i class="fas fa-info-circle"></i> Must match exactly one of the options above.</small>
+                <select class="form-control" id="goodAnswer" name="goodAnswer">
+                  <option value="">-- Select Correct Answer --</option>
+                  <option value="A" <?= isset($question) && ($question['goodAnswer'] ?? '') == 'A' ? 'selected' : '' ?>>A</option>
+                  <option value="B" <?= isset($question) && ($question['goodAnswer'] ?? '') == 'B' ? 'selected' : '' ?>>B</option>
+                  <option value="C" <?= isset($question) && ($question['goodAnswer'] ?? '') == 'C' ? 'selected' : '' ?>>C</option>
+                  <option value="D" <?= isset($question) && ($question['goodAnswer'] ?? '') == 'D' ? 'selected' : '' ?>>D</option>
+                </select>
+                <small class="form-text text-muted"><i class="fas fa-info-circle"></i> Select which option (A, B, C, or D) is correct.</small>
                 <span class="text-sm d-block mt-1" id="goodAnswer-msg"></span>
               </div>
 
               <div class="form-group">
-                <label for="points">Points <span class="text-danger">*</span></label>
-                <input type="number" class="form-control" id="points" name="points" value="<?= htmlspecialchars($question['points'] ?? 5) ?>" placeholder="Points awarded for correct answer">
-                <small class="form-text text-muted"><i class="fas fa-star"></i> Points awarded when this question is answered correctly (default: 5 points).</small>
-                <span class="text-sm d-block mt-1" id="points-msg"></span>
+                <label for="explanation">Explanation (Optional)</label>
+                <textarea class="form-control" id="explanation" name="explanation" rows="3" placeholder="Explain why this is the correct answer (shown after quiz completion)"><?= htmlspecialchars($question['explanation'] ?? '') ?></textarea>
+                <small class="form-text text-muted">Help students learn by explaining the correct answer.</small>
               </div>
 
               <hr>
@@ -156,9 +185,9 @@
     const form = document.querySelector('form');
     let validations = {
         lessonId: false,
-        questionText: false,
-        option1: false,
-        option2: false,
+        question: false,
+        optionA: false,
+        optionB: false,
         goodAnswer: false,
         points: false
     };
@@ -252,67 +281,26 @@
         return true;
     }
 
-    // Validate correct answer matches one of the options
+    // Validate correct answer selection
     function validateCorrectAnswer() {
         const goodAnswer = document.getElementById('goodAnswer');
-        const option1 = document.getElementById('option1');
-        const option2 = document.getElementById('option2');
-        const option3 = document.getElementById('option3');
         const msg = document.getElementById('goodAnswer-msg');
 
-        if (!goodAnswer || !option1 || !option2) return false;
+        if (!goodAnswer) return false;
 
-        const correctVal = goodAnswer.value.trim().toLowerCase();
-        const opt1Val = option1.value.trim().toLowerCase();
-        const opt2Val = option2.value.trim().toLowerCase();
-        const opt3Val = option3 ? option3.value.trim().toLowerCase() : '';
-
-        if (correctVal === '') {
+        if (goodAnswer.value === '') {
             goodAnswer.style.border = "2px solid #dc3545";
             if (msg) {
                 msg.style.color = "#dc3545";
-                msg.innerHTML = '<i class="fas fa-exclamation-circle"></i> Correct answer is required';
+                msg.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please select the correct answer';
             }
             return false;
         }
 
-        if (correctVal === opt1Val || correctVal === opt2Val || (opt3Val && correctVal === opt3Val)) {
-            goodAnswer.style.border = "2px solid #28a745";
-            if (msg) {
-                msg.style.color = "#28a745";
-                msg.innerHTML = '<i class="fas fa-check-circle"></i> Matches an option';
-            }
-            return true;
-        } else {
-            goodAnswer.style.border = "2px solid #dc3545";
-            if (msg) {
-                msg.style.color = "#dc3545";
-                msg.innerHTML = '<i class="fas fa-exclamation-circle"></i> Must match one of the options above';
-            }
-            return false;
-        }
-    }
-
-    // Validate option3 (optional field)
-    function validateOption3() {
-        const input = document.getElementById('option3');
-        const msg = document.getElementById('option3-msg');
-        if (!input) return true;
-
-        const val = input.value.trim();
-        if (val.length === 0) {
-            input.style.border = "";
-            if (msg) {
-                msg.innerHTML = '<i class="fas fa-info-circle" style="color: #6c757d;"></i> Optional';
-            }
-            return true;
-        } else if (val.length >= 1) {
-            input.style.border = "2px solid #28a745";
-            if (msg) {
-                msg.style.color = "#28a745";
-                msg.innerHTML = '<i class="fas fa-check-circle"></i> Valid option';
-            }
-            return true;
+        goodAnswer.style.border = "2px solid #28a745";
+        if (msg) {
+            msg.style.color = "#28a745";
+            msg.innerHTML = '<i class="fas fa-check-circle"></i> Correct answer selected';
         }
         return true;
     }
@@ -322,26 +310,19 @@
         validations.lessonId = validateSelect('lessonId', 'lessonId-msg');
     });
 
-    document.getElementById('questionText')?.addEventListener('input', function() {
-        validations.questionText = validateText('questionText', 'questionText-msg', 10);
+    document.getElementById('question')?.addEventListener('input', function() {
+        validations.question = validateText('question', 'question-msg', 10);
     });
 
-    document.getElementById('option1')?.addEventListener('input', function() {
-        validations.option1 = validateText('option1', 'option1-msg', 1);
-        validateCorrectAnswer();
+    document.getElementById('optionA')?.addEventListener('input', function() {
+        validations.optionA = validateText('optionA', 'optionA-msg', 1);
     });
 
-    document.getElementById('option2')?.addEventListener('input', function() {
-        validations.option2 = validateText('option2', 'option2-msg', 1);
-        validateCorrectAnswer();
+    document.getElementById('optionB')?.addEventListener('input', function() {
+        validations.optionB = validateText('optionB', 'optionB-msg', 1);
     });
 
-    document.getElementById('option3')?.addEventListener('input', function() {
-        validateOption3();
-        validateCorrectAnswer();
-    });
-
-    document.getElementById('goodAnswer')?.addEventListener('input', function() {
+    document.getElementById('goodAnswer')?.addEventListener('change', function() {
         validations.goodAnswer = validateCorrectAnswer();
     });
 
@@ -354,18 +335,17 @@
         form.addEventListener('submit', function(event) {
             // Validate all required fields
             validations.lessonId = validateSelect('lessonId', 'lessonId-msg');
-            validations.questionText = validateText('questionText', 'questionText-msg', 10);
-            validations.option1 = validateText('option1', 'option1-msg', 1);
-            validations.option2 = validateText('option2', 'option2-msg', 1);
+            validations.question = validateText('question', 'question-msg', 10);
+            validations.optionA = validateText('optionA', 'optionA-msg', 1);
+            validations.optionB = validateText('optionB', 'optionB-msg', 1);
             validations.goodAnswer = validateCorrectAnswer();
             validations.points = validatePoints('points', 'points-msg');
-            validateOption3();
 
             // Check if all required fields are valid
             const allValid = validations.lessonId && 
-                           validations.questionText && 
-                           validations.option1 && 
-                           validations.option2 && 
+                           validations.question && 
+                           validations.optionA && 
+                           validations.optionB && 
                            validations.goodAnswer && 
                            validations.points;
 

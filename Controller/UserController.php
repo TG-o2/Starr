@@ -130,11 +130,28 @@ class UserController {
 
     public function deleteUser($user_id) {
         $pdo = Config::getConnexion();
-        $pdo->prepare("DELETE FROM user WHERE user_id = ?")->execute([$user_id]);
-
-        if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $user_id) {
-            session_unset();
-            session_destroy();
+        
+        try {
+            // Start transaction
+            $pdo->beginTransaction();
+            
+            // Delete all reports where this user is the reporter
+            $pdo->prepare("DELETE FROM report WHERE reporterId = ?")->execute([$user_id]);
+            
+            // Delete the user
+            $pdo->prepare("DELETE FROM user WHERE user_id = ?")->execute([$user_id]);
+            
+            // Commit transaction
+            $pdo->commit();
+            
+            if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $user_id) {
+                session_unset();
+                session_destroy();
+            }
+        } catch (PDOException $e) {
+            // Rollback on error
+            $pdo->rollBack();
+            throw $e;
         }
     }
 
@@ -173,7 +190,7 @@ class UserController {
         // Generate verification URL dynamically - works on localhost, IP, or domain
         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http';
         $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-        $verifyLink = "{$protocol}://{$host}/Starr/View/Front%20office/User-signup/verify.php?token={$token}";
+        $verifyLink = "{$protocol}://{$host}/Starr/Starr/View/Front%20office/User-signup/verify.php?token={$token}";
 
         $mail = new PHPMailer(true);
         try {
@@ -225,7 +242,8 @@ class UserController {
         // Generate verification URL dynamically - works on localhost, IP, or domain
         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http';
         $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-        $verifyLink = "{$protocol}://{$host}/Starr/View/Front%20office/User-signup/verify.php?token={$token}";
+        $verifyLink = "{$protocol}://{$host}/Starr/Starr/View/Front%20office/User-signup/verify.php?token={$token}";
+
 
         $mail = new PHPMailer(true);
         try {
