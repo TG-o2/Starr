@@ -1,7 +1,7 @@
 # Starr
 
 ## Description
-Starr is a PHP MVC platform for students, teachers, parents, and administrators.
+Starr is a PHP MVC platform for children, students, teachers, parents, and administrators.
 It combines lessons, quizzes, posts, comments, reports, news, points, and badges.
 The goal is to provide a safe educational community with moderation tools.
 Teachers can publish content and quizzes for learning activities.
