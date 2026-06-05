@@ -1,14 +1,30 @@
 <?php
 
-require_once __DIR__ . '/../config/config.php';
-
 class QuestionModel
 {
     private $connexion;
 
     public function __construct()
     {
-        $this->connexion = Config::getConnexion();
+        $this->connexion = $this->createConnection();
+    }
+
+    private function createConnection(): PDO
+    {
+        $servername = $_ENV['DB_HOST'] ?? 'localhost';
+        $username = $_ENV['DB_USER'] ?? 'root';
+        $password = $_ENV['DB_PASS'] ?? '';
+        $dbname = $_ENV['DB_NAME'] ?? 'Starr';
+
+        return new PDO(
+            "mysql:host=$servername;dbname=$dbname;charset=utf8mb4",
+            $username,
+            $password,
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            ]
+        );
     }
 
     public function create(array $data): int
