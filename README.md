@@ -1,68 +1,33 @@
-# Starr-Starr
+# Starr
 
 ## Description
-Starr-Starr is a safe web platform designed for children to learn and interact. Developed in PHP using the MVC (Model-View-Controller) model, it includes features for educational quizzes, a points and badges system, news, posts, comments, and reports. Parents can create accounts to monitor their children's activities, and teachers can add content and quizzes to facilitate learning.
+Starr is a PHP MVC web platform for children, teachers, parents, and administrators. It includes lessons, quizzes, posts, comments, reports, news, and a points/badges system.
 
-## Features
-- Points and badges system to reward users.
-- Management of news and associated comments.
-- Posts and messages with interactions.
-- Reporting system for moderation.
-- Educational quizzes added by teachers.
-- Parent accounts for monitoring children's activities.
-- Teacher accounts for content creation and teaching.
-- Admin dashboard for managing points, transactions, and moderation.
-- Front office interface for end users.
-
-## Prerequisites
+## Requirements
 - PHP 7.4 or higher
-- Web server (Apache recommended, via XAMPP)
-- MySQL database
-- Modern web browser
+- Apache or another web server
+- MySQL or MariaDB
+- XAMPP is recommended for local development
 
-## API Architecture
--Submitting reports
--Fetching messages or responses
--Handling dynamic content updates without page reload
--Supporting future mobile or external integrations
+## Repository files
+- `.gitignore` excludes local dependencies, build outputs, logs, and real environment files.
+- `.env.example` documents the environment variables without exposing secrets.
+- `docs/` contains technical documentation and can be extended with diagrams or API notes.
+- `demo/` is reserved for screenshots, GIFs, or video links.
+- `database/schema.sql` creates the database structure and includes seed data for testing.
 
 ## Installation
-1. Clone the repository into the XAMPP htdocs directory:
-   ```
-   git clone <repository-url> c:\xampp\htdocs\Starr-Starr-main
-   ```
-2. Configure the database in `config/config.php` and `config/email_config.php`.
-3. Import the database schema if provided.
-4. Start XAMPP and access `http://localhost/Starr-Starr-main`.
+1. Clone the repository into your web root.
+2. Create a local `.env` file from `.env.example` if you want to store environment values outside code.
+3. Import `database/schema.sql` into MySQL.
+4. Update `config/config.php` if your local database credentials differ.
+5. Start Apache and MySQL, then open the project in your browser.
 
-## Usage
-- Access the front office interface via the home page.
-- Admins can log in to the back office to manage content.
-- Use forms to publish news, posts, or submit reports.
+## Running locally
+- Front office: open the main project URL in your browser.
+- Back office: use the admin views under `View/Back office/`.
+- If you add new documentation, place it in `docs/`.
 
-## Tests
-Run unit tests via PHPUnit if configured:
-```
-phpunit
-```
-Or manually test features in the interface.
-
-## Contribution
-1. Fork the project.
-2. Create a branch for your changes.
-3. Submit a pull request with a clear description.
-
-## License
-This project is under the MIT license. See the LICENSE file for more details.
-
-## Authors
-- Iheb Hamouda
-- Mounib Sarray
-- Jihene Jeridi
-- Ahmed Safierrahman Abidi
-- Guesmi Tasnim
-- Nasralli Houda
-
-## Acknowledgments
-- Thanks to the open source community for the libraries used.
-- Inspired by educational projects in web programming.
+## Notes
+- Do not commit real `.env` files, API keys, passwords, or generated logs.
+- Keep `demo/` for presentation assets only.

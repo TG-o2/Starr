@@ -1,1 +1,24 @@
-Front office/css/style.css
+# Dependencies and build outputs
+node_modules/
+target/
+dist/
+.idea/
+.vscode/
+
+# Logs and temporary files
+logs/
+tmp/
+temp/
+*.log
+*.tmp
+*.temp
+*.cache
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
