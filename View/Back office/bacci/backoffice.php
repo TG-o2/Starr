@@ -970,11 +970,11 @@ if (isset($_GET['edit_id'])) {
                 <div class="sidebar-brand-icon rotate-n-15">
                     <i class="fas fa-laugh-wink"></i>
                 </div>
-                <div class="sidebar-brand-text mx-3"><?php echo $site_name; ?> <sup>Admin</sup></div>
+                <div class="sidebar-brand-text mx-3"><?php echo $site_name; ?> <sup>Teacher</sup></div>
             </a>
             <hr class="sidebar-divider my-0">
             <li class="nav-item">
-                <a class="nav-link" href="index.html">
+                <a class="nav-link" href="../Teacher Dashboard/Dashboard.php">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Dashboard</span></a>
             </li>
@@ -1013,7 +1013,7 @@ if (isset($_GET['edit_id'])) {
                     <ul class="navbar-nav ml-auto">
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Admin User</span>
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Teacher User</span>
                             </a>
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
                                 <a class="dropdown-item" href="#">
@@ -1219,7 +1219,7 @@ if (isset($_GET['edit_id'])) {
                                                                 <div class="card-body">
                                                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                                                         <h6 class="card-subtitle mb-1 text-primary">
-                                                                            Admin
+                                                                            Teacher
                                                                         </h6>
                                                                         <div class="btn-group btn-group-sm">
                                                                             <button class="btn btn-outline-secondary edit-comment-btn" 

@@ -13,12 +13,13 @@ $alert_type = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
         $action = $_POST['action'];
+    $current_admin_id = isset($_SESSION['user_id']) && is_numeric($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
 
         if ($action === 'create') {
             $starr_id = $_POST['starr_id'] ?? '';
             $points_change = $_POST['points_change'] ?? 0;
             $reason = $_POST['reason'] ?? '';
-            $created_by = $_POST['created_by'] ?? 'Admin';
+      $created_by = $current_admin_id;
 
             $result = $controller->create($starr_id, $points_change, $reason, $created_by);
             $message = $result['message'];
@@ -30,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $starr_id = $_POST['starr_id'] ?? '';
             $points_change = $_POST['points_change'] ?? 0;
             $reason = $_POST['reason'] ?? '';
-            $created_by = $_POST['created_by'] ?? 'Admin';
+          $created_by = $current_admin_id;
 
             $result = $controller->update($transaction_id, $starr_id, $points_change, $reason, $created_by);
             $message = $result['message'];
@@ -243,7 +244,7 @@ if (isset($_GET['edit_id'])) {
 
                         <div class="mb-3">
                             <label class="form-label">Created By</label>
-                            <input type="text" name="created_by" class="form-control" value="<?php echo $edit_transaction ? htmlspecialchars($edit_transaction['created_by']) : 'Admin'; ?>">
+                          <input type="text" class="form-control" value="<?php echo isset($_SESSION['user_id']) && is_numeric($_SESSION['user_id']) ? htmlspecialchars((string)$_SESSION['user_id']) : 'System'; ?>" readonly>
                         </div>
 
                         <div class="d-grid">

@@ -11,17 +11,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = $controller->getUserByEmail($email);
 
     if ($user) {
-        //$password = password_hash($password, PASSWORD_DEFAULT);
         if (password_verify($password, $user['password'])) { 
              $_SESSION['user_id'] = $user['user_id'];
              $_SESSION['email'] = $user['email'];
-             $_SESSION['password'] = $user['password'];
              $_SESSION['fname'] = $user['fname'];
              $_SESSION['lname'] = $user['lname'];
              $_SESSION['DOB'] = $user['DOB'];
-             $_SESSION['role'] = $user['role'];
-             $_SESSION['avatar'] = $user['avatar'];
-             $_SESSION['description'] = $user['description'];
+           $_SESSION['role'] = strtolower((string)$user['role']);
+           $_SESSION['avatar'] = $user['avatar'] ?? 'default-avatar.png';
+           $_SESSION['description'] = $user['description'] ?? '';
              $_SESSION['starPoints'] = $user['starPoints'];    
             header('Location: ../Admin Dashboard/Dashboard.php');
             exit;
@@ -82,10 +80,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <h1 class="h4 text-gray-900 mb-4">Admin Login</h1>
                   </div>
                   <form class="user" method="POST">
-                     <?php if (!empty($error)): ?>
+                    <?php if (!empty($error)): ?>
                       <div class="alert alert-danger text-center">
-                        <strong><?php echo htmlspecialchars($error); endif; ?></strong>
+                        <strong><?php echo htmlspecialchars($error); ?></strong>
                       </div>
+                    <?php endif; ?>
                     <div class="form-group">
                       <input name="email" type="email" class="form-control form-control-user" id="exampleInputEmail" aria-describedby="emailHelp" placeholder="Enter Email Address...">
                     </div>

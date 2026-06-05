@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $controller = new UserController();
 
-    if ($resend && !empty($email)) {
+    if ($resend && !empty($email) && empty($error)) {
         if ($controller->resendVerificationEmail($email)) {
             $resendSuccess = "Verification email sent! Check your inbox and spam folder.";
         } else {
@@ -46,12 +46,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    else {
+    elseif (empty($error)) {
         $user = $controller->getUserByEmail($email);
 
         if ($user && password_verify($password, $user['password'])) {
+        $role = strtolower((string)($user['role'] ?? ''));
 
-            if ((int)$user['verified'] === 0) {
+        if ((int)$user['is_banned'] === 1) {
+          $error = "Your account has been banned. Please contact support.";
+        }
+
+        elseif ((int)$user['verified'] === 0) {
               // Auto-resend verification email when unverified
               if ($controller->resendVerificationEmail($email)) {
                 $error = "Your account is not verified. A new verification email has been sent to <strong>{$email}</strong>. Please check your inbox and spam folder.";
@@ -59,11 +64,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = "Account requires verification, but email sending failed. Please try again later.";
               }
             }
-            elseif ((int)$user['is_banned'] === 1) {
-                $error = "Your account has been banned. Please contact support.";
-            }
 
-            elseif ((int)$user['is_approved'] === 0 && $user['role'] !== 'admin') {
+        elseif ((int)$user['is_approved'] === 0 && $role !== 'admin') {
                 $error = "Your account is pending admin approval. Please wait.";
             }
 
@@ -74,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['fname']       = $user['fname'];
                 $_SESSION['lname']       = $user['lname'];
                 $_SESSION['DOB']         = $user['DOB'];
-                $_SESSION['role']        = $user['role'];
+          $_SESSION['role']        = $role ?: 'student';
                 $_SESSION['avatar']      = $user['avatar'] ?? 'default-avatar.png';
                 $_SESSION['description'] = $user['description'] ?? '';
                 $_SESSION['starPoints']  = $user['starPoints'] ?? 0;

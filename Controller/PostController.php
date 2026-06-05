@@ -3,7 +3,7 @@
     require_once __DIR__ . '/../Model/Post.php';
     class postcontroller{
         public function addpost($post) {
-            $sql = "INSERT INTO posts (id, subject, content, number_messages, user_id, category, view_count, like_count, created_at) 
+            $sql = "INSERT INTO posts (id, subjects, content, number_messages, user_id, category, view_count, like_count, created_at) 
                     VALUES ( :id, :subjects, :content, :number_messages, :user_id, :category, :view_count, :like_count, :created_at)";
             $db = config::getConnexion();
             
@@ -42,7 +42,7 @@
         public function readpostsWithUserInfo(){
             $sql="SELECT 
                     p.id, 
-                    p.subject, 
+                    p.subjects, 
                     p.content, 
                     p.number_messages, 
                     p.user_id, 
@@ -66,6 +66,7 @@
                 return $query->fetchAll();
             } catch (Exception $e){
                 echo 'Error: ' . $e->getMessage();
+                return [];
             }
         }
         public function updatepost($post, $id) {
@@ -73,7 +74,7 @@
                 $db = config::getConnexion();
                 $query = $db->prepare(
                     'UPDATE posts SET
-                    subject = :subject,
+                    subjects = :subject,
                     content = :content,
                     number_messages = :number_messages,
                     user_id = :user_id,

@@ -3,9 +3,9 @@
     require_once __DIR__ . '/../Model/messages.php';
     class messagescontroller{
         public function addmessages($messages) {
-            // Insert with user_id into user_name column (despite confusing naming)
-            $sql = "INSERT INTO messages (post_id, content, number_replies, user_name, like_count, created_at) 
-                    VALUES ( :post_id, :content, :number_replies, :user_name, :like_count, :created_at)";
+            // Insert user_id into user_id column
+            $sql = "INSERT INTO messages (post_id, content, number_replies, user_id, like_count, created_at) 
+                    VALUES ( :post_id, :content, :number_replies, :user_id, :like_count, :created_at)";
             $db = config::getConnexion();
             
             try {
@@ -14,7 +14,7 @@
                     'post_id' => $messages->getpost_id(),
                     'content' => $messages->getcontent(),
                     'number_replies' => $messages->getnumber_replies(),
-                    'user_name' => $messages->getuser_id(),  // Store user_id in user_name column
+                    'user_id' => $messages->getuser_id(),
                     'like_count' => $messages->getlike_count(),
                     'created_at' => $messages->getcreated_at()
                 ]);
@@ -43,7 +43,7 @@
                     m.post_id,
                     m.content,
                     m.number_replies,
-                    m.user_name,
+                    m.user_id,
                     m.like_count,
                     m.created_at,
                     u.user_id,
@@ -53,7 +53,7 @@
                     COALESCE(sp.total_points, 0) as starPoints,
                     u.avatar
                 FROM messages m
-                LEFT JOIN user u ON m.user_name = u.user_id
+                LEFT JOIN user u ON m.user_id = u.user_id
                 LEFT JOIN STARR_POINTS sp ON u.user_id = sp.starr_id
                 ORDER BY m.created_at ASC";
             $db=config::getConnexion();
@@ -63,6 +63,7 @@
                 return $query->fetchAll();
             } catch (Exception $e){
                 echo 'Error: ' . $e->getMessage();
+                return [];
             }
         }
         public function updatemessages($messages, $id) {
@@ -73,7 +74,7 @@
                     post_id = :post_id,
                     content = :content,
                     number_replies = :number_replies,
-                    user_name = :user_name,
+                    user_id = :user_id,
                     like_count = :like_count,
                     created_at = :created_at
                     WHERE id = :id'
@@ -83,7 +84,7 @@
                     'post_id' => $messages->getpost_id(),
                     'content' => $messages->getcontent(),
                     'number_replies' => $messages->getnumber_replies(),
-                    'user_name' => $messages->getuser_id(),  // Store user_id in user_name column
+                    'user_id' => $messages->getuser_id(),
                     'like_count' => $messages->getlike_count(),
                     'created_at' => $messages->getcreated_at()
                 ]);

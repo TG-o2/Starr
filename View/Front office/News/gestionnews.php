@@ -187,7 +187,7 @@ $allNews = $newsController->getAllNews();
                         </div>
                     </div>
                     <a href="gestionnews.php" class="nav-item nav-link active">Articles</a>
-                     <a href="../Education Corner/lessonDetails.php" class="nav-item nav-link">Education Corner</a>
+                     <a href="../Education Corner/lessonDisplay_direct.php" class="nav-item nav-link">Education Corner</a>
                     <a href="../User-signup/viewProfile.php" class="nav-item nav-link">View Profile</a>
                 </div>
             </div>
@@ -273,15 +273,14 @@ $allNews = $newsController->getAllNews();
                 <article id="news-<?php echo (int)$news['newsid']; ?>" class="bg-white rounded p-5 shadow-sm mb-5 border-start border-4 border-primary">
                   <div class="mb-4">
                     <?php 
-                      $debugPath = '';
+                      $imagePath = '';
                       if (!empty($news['image'])) {
-                        // From View/Front office/News/, three levels up to project root then into uploads/news
-                        $debugPath = "../../../uploads/news/" . urlencode($news['image']);
+                        // From View/Front office/News/, go up to View/ then into uploads/news
+                        $imagePath = "../../uploads/news/" . rawurlencode(basename($news['image']));
                       }
                     ?>
-                    <!-- DEBUG: Image from DB: <?php echo htmlspecialchars($news['image']); ?> | Full path: <?php echo $debugPath; ?> -->
                     <?php if (!empty($news['image'])): ?>
-                      <img src="<?php echo $debugPath; ?>" alt="<?php echo htmlspecialchars($news['title']); ?>" class="img-fluid rounded mb-4" style="width: 100%; max-height: 400px; object-fit: cover;">
+                      <img src="<?php echo $imagePath; ?>" alt="<?php echo htmlspecialchars($news['title']); ?>" class="img-fluid rounded mb-4" style="width: 100%; max-height: 400px; object-fit: cover;">
                     <?php else: ?>
                       <img src="../assets/img/carousel-1.jpg" alt="Default news image" class="img-fluid rounded mb-4" style="width: 100%; max-height: 400px; object-fit: cover;">
                     <?php endif; ?>

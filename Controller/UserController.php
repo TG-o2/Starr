@@ -4,7 +4,10 @@ if (file_exists(__DIR__ . '/../.env')) {
     $lines = file(__DIR__ . '/../.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
         $line = trim($line);
-        if ($line === '' || $line[0] === '#') continue;
+        if ($line === '' || $line[0] === '#') {
+            continue;
+        }
+
         list($name, $value) = explode('=', $line, 2);
         $_ENV[trim($name)] = trim($value);
     }
@@ -18,21 +21,34 @@ require_once __DIR__ . '/../View/Front office/assets/vendor/phpmailer/SMTP.php';
 require_once __DIR__ . '/../View/Front office/assets/vendor/phpmailer/Exception.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
 class UserController {
+    private function getEnvValue(string $key): ?string {
+        $value = $_ENV[$key] ?? getenv($key);
+        if ($value === false || $value === null) {
+            return null;
+        }
+
+        $value = trim((string) $value);
+        return $value !== '' ? $value : null;
+    }
+
+    private function normalizeRole($role) {
+        $normalized = strtolower(trim((string) $role));
+        return $normalized !== '' ? $normalized : 'student';
+    }
 
     public function addUser(User $user) {
         $pdo = Config::getConnexion();
         $sql = "INSERT INTO user (
-            password, fname, lname, DOB, profilePicture, description, username, email, 
+            password, fname, lname, DOB, profilePicture, description, username, email,
             role, avatar, verified, is_banned, is_approved, verification_token, approval_token
         ) VALUES (
             :password, :fname, :lname, :DOB, :profilePicture, :description, :username, :email,
             :role, :avatar, :verified, :is_banned, :is_approved, :verification_token, :approval_token
         )";
-        
+
         $query = $pdo->prepare($sql);
         $query->execute([
             ':password' => password_hash($user->getPassword(), PASSWORD_DEFAULT),
@@ -43,7 +59,7 @@ class UserController {
             ':description' => $user->getDescription(),
             ':username' => $user->getUsername(),
             ':email' => $user->getEmail(),
-            ':role' => $user->getRole() ?? 'student',
+            ':role' => $this->normalizeRole($user->getRole()),
             ':avatar' => $user->getAvatar(),
             ':verified' => $user->getVerified() ?? 0,
             ':is_banned' => $user->getIsBanned() ?? 0,
@@ -74,21 +90,23 @@ class UserController {
     public function updateUser(User $user, $user_id) {
         $pdo = Config::getConnexion();
 
-        // Check if email is already used by another user
         $sql = "SELECT COUNT(*) FROM user WHERE email = :email AND user_id != :user_id";
         $query = $pdo->prepare($sql);
         $query->execute(['email' => $user->getEmail(), 'user_id' => $user_id]);
         if ($query->fetchColumn() > 0) {
-            throw new Exception("Email already exists.");
+            throw new \Exception("Email already exists.");
         }
 
-        // Handle password hashing
-        $hashedPassword = !empty($user->getPassword())
-            ? password_hash($user->getPassword(), PASSWORD_DEFAULT)
-            : $pdo->query("SELECT password FROM user WHERE user_id = '$user_id'")->fetchColumn();
+        if (!empty($user->getPassword())) {
+            $hashedPassword = password_hash($user->getPassword(), PASSWORD_DEFAULT);
+        } else {
+            $passwordStmt = $pdo->prepare("SELECT password FROM user WHERE user_id = :user_id");
+            $passwordStmt->execute(['user_id' => $user_id]);
+            $hashedPassword = $passwordStmt->fetchColumn();
+        }
 
-        $sql = "UPDATE user SET 
-                password=:password, fname=:fname, lname=:lname, DOB=:DOB, 
+        $sql = "UPDATE user SET
+                password=:password, fname=:fname, lname=:lname, DOB=:DOB,
                 profilePicture=:profilePicture, description=:description, username=:username,
                 email=:email, role=:role, avatar=:avatar,
                 verified=:verified, is_approved=:is_approved, is_banned=:is_banned,
@@ -105,7 +123,7 @@ class UserController {
             ':description' => $user->getDescription(),
             ':username' => $user->getUsername(),
             ':email' => $user->getEmail(),
-            ':role' => $user->getRole(),
+            ':role' => $this->normalizeRole($user->getRole()),
             ':avatar' => $user->getAvatar(),
             ':verified' => $user->getVerified(),
             ':is_approved' => $user->getIsApproved(),
@@ -115,13 +133,12 @@ class UserController {
             ':user_id' => $user_id
         ]);
 
-        // Update session if user is updating their own profile
         if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $user_id) {
             $_SESSION['email'] = $user->getEmail();
             $_SESSION['fname'] = $user->getFname();
             $_SESSION['lname'] = $user->getLname();
             $_SESSION['username'] = $user->getUsername();
-            $_SESSION['role'] = $user->getRole();
+            $_SESSION['role'] = $this->normalizeRole($user->getRole());
             $_SESSION['avatar'] = $user->getAvatar();
             $_SESSION['description'] = $user->getDescription();
             $_SESSION['verified'] = $user->getVerified();
@@ -130,26 +147,18 @@ class UserController {
 
     public function deleteUser($user_id) {
         $pdo = Config::getConnexion();
-        
+
         try {
-            // Start transaction
             $pdo->beginTransaction();
-            
-            // Delete all reports where this user is the reporter
             $pdo->prepare("DELETE FROM report WHERE reporterId = ?")->execute([$user_id]);
-            
-            // Delete the user
             $pdo->prepare("DELETE FROM user WHERE user_id = ?")->execute([$user_id]);
-            
-            // Commit transaction
             $pdo->commit();
-            
+
             if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $user_id) {
                 session_unset();
                 session_destroy();
             }
         } catch (PDOException $e) {
-            // Rollback on error
             $pdo->rollBack();
             throw $e;
         }
@@ -157,11 +166,10 @@ class UserController {
 
     public function addUserWithVerification(User $user) {
         $pdo = Config::getConnexion();
-
         $token = bin2hex(random_bytes(32));
 
         $sql = "INSERT INTO user (
-            password, fname, lname, DOB, profilePicture, description, username, email, role, 
+            password, fname, lname, DOB, profilePicture, description, username, email, role,
             avatar, verified, is_banned, is_approved, verification_token, approval_token
         ) VALUES (
             :password, :fname, :lname, :DOB, :profilePicture, :description, :username, :email, :role,
@@ -178,7 +186,7 @@ class UserController {
             ':description' => $user->getDescription(),
             ':username' => $user->getUsername(),
             ':email' => $user->getEmail(),
-            ':role' => $user->getRole() ?? 'student',
+            ':role' => $this->normalizeRole($user->getRole()),
             ':avatar' => $user->getAvatar(),
             ':verified' => 0,
             ':is_banned' => 0,
@@ -187,27 +195,36 @@ class UserController {
             ':approval_token' => null
         ]);
 
-        // Generate verification URL dynamically - works on localhost, IP, or domain
         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http';
         $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-        $verifyLink = "{$protocol}://{$host}/Starr/Starr/View/Front%20office/User-signup/verify.php?token={$token}";
+        $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/'));
+        $verifyPath = rtrim(str_replace(' ', '%20', $scriptDir), '/') . '/verify.php';
+        $verifyLink = "{$protocol}://{$host}{$verifyPath}?token={$token}";
+
+        $mailUser = $this->getEnvValue('GMAIL_USER');
+        $mailPassword = $this->getEnvValue('GMAIL_APP_PASSWORD');
+
+        if (!$mailUser || !$mailPassword) {
+            error_log('Starr mail configuration is missing GMAIL_USER or GMAIL_APP_PASSWORD.');
+            return $pdo->lastInsertId();
+        }
 
         $mail = new PHPMailer(true);
         try {
             $mail->SMTPDebug = 0;
             $mail->isSMTP();
-            $mail->Host       = 'smtp.gmail.com';
-            $mail->SMTPAuth   = true;
-            $mail->Username   = $_ENV['GMAIL_USER'];
-            $mail->Password   = $_ENV['GMAIL_APP_PASSWORD'];
+            $mail->Host = 'smtp.gmail.com';
+            $mail->SMTPAuth = true;
+            $mail->Username = $mailUser;
+            $mail->Password = $mailPassword;
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port       = 587;
+            $mail->Port = 587;
 
-            $mail->setFrom($_ENV['GMAIL_USER'], 'Starr');
+            $mail->setFrom($mailUser, 'Starr');
             $mail->addAddress($user->getEmail());
             $mail->isHTML(true);
             $mail->Subject = 'Verify Your Starr Account';
-            $mail->Body    = "
+            $mail->Body = "
                 <h2>Hello {$user->getFname()}!</h2>
                 <p>Thank you for joining Starr!</p>
                 <p style='text-align:center;margin:40px 0;'>
@@ -219,7 +236,7 @@ class UserController {
 
             $mail->send();
         } catch (Exception $e) {
-            error_log("PHPMailer Error: " . $mail->ErrorInfo);
+            error_log('PHPMailer Error: ' . $mail->ErrorInfo);
         }
 
         return $pdo->lastInsertId();
@@ -233,34 +250,44 @@ class UserController {
         $stmt->execute(['email' => $email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$user) return false;
+        if (!$user) {
+            return false;
+        }
 
         $token = bin2hex(random_bytes(32));
         $update = $pdo->prepare("UPDATE user SET verification_token = ? WHERE user_id = ?");
         $update->execute([$token, $user['user_id']]);
 
-        // Generate verification URL dynamically - works on localhost, IP, or domain
         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http';
         $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-        $verifyLink = "{$protocol}://{$host}/Starr/Starr/View/Front%20office/User-signup/verify.php?token={$token}";
+        $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/'));
+        $verifyPath = rtrim(str_replace(' ', '%20', $scriptDir), '/') . '/verify.php';
+        $verifyLink = "{$protocol}://{$host}{$verifyPath}?token={$token}";
 
+        $mailUser = $this->getEnvValue('GMAIL_USER');
+        $mailPassword = $this->getEnvValue('GMAIL_APP_PASSWORD');
+
+        if (!$mailUser || !$mailPassword) {
+            error_log('Starr mail configuration is missing GMAIL_USER or GMAIL_APP_PASSWORD.');
+            return false;
+        }
 
         $mail = new PHPMailer(true);
         try {
-            $mail->SMTPDebug = 0;                     // Disable verbose debug output
+            $mail->SMTPDebug = 0;
             $mail->isSMTP();
-            $mail->Host       = 'smtp.gmail.com';
-            $mail->SMTPAuth   = true;
-            $mail->Username   = $_ENV['GMAIL_USER'];
-            $mail->Password   = $_ENV['GMAIL_APP_PASSWORD'];
+            $mail->Host = 'smtp.gmail.com';
+            $mail->SMTPAuth = true;
+            $mail->Username = $mailUser;
+            $mail->Password = $mailPassword;
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port       = 587;
+            $mail->Port = 587;
 
-            $mail->setFrom($_ENV['GMAIL_USER'], 'Starr');
+            $mail->setFrom($mailUser, 'Starr');
             $mail->addAddress($email);
             $mail->isHTML(true);
             $mail->Subject = 'Resend: Verify Your Starr Account';
-            $mail->Body    = "
+            $mail->Body = "
                 <h2>Hello {$user['fname']}!</h2>
                 <p>Click below to verify your email:</p>
                 <p style='text-align:center;'>
@@ -273,7 +300,7 @@ class UserController {
             $mail->send();
             return true;
         } catch (Exception $e) {
-            error_log("Resend failed: " . $mail->ErrorInfo);
+            error_log('Resend failed: ' . $mail->ErrorInfo);
             return false;
         }
     }
@@ -284,7 +311,6 @@ class UserController {
         $stmt = $pdo->prepare($sql);
         $stmt->execute(['user_id' => $user_id]);
     }
-
 
     public function searchAndFilterUsers($filters = []) {
         $pdo = Config::getConnexion();
@@ -320,7 +346,7 @@ class UserController {
             }
         }
 
-        if ($filters['approved'] !== '' && $filters['approved'] !== null) {
+        if (($filters['approved'] ?? '') !== '' && ($filters['approved'] ?? null) !== null) {
             $sql .= " AND is_approved = ?";
             $params[] = $filters['approved'];
         }
@@ -332,6 +358,3 @@ class UserController {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
-// End of class
-
-?>

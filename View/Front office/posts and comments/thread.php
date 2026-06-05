@@ -346,7 +346,7 @@ require_once __DIR__ . '/../../../Controller/BadgeHelper.php';
                         </div>
                     </div>
                     <a href="../News/gestionnews.php" class="nav-item nav-link">Articles</a>
-                    <a href="../Education Corner/lessonDetails.php" class="nav-item nav-link">Education Corner</a>
+                    <a href="../Education Corner/lessonDisplay_direct.php" class="nav-item nav-link">Education Corner</a>
                 </div>
             </div>
         </nav>
@@ -424,7 +424,7 @@ require_once __DIR__ . '/../../../Controller/BadgeHelper.php';
                                  onerror="this.src='../assets/img/userProfile/default-avatar.png';">
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <h5 class="card-title"><?php echo htmlspecialchars($value['subject']); ?></h5>
+                            <h5 class="card-title"><?php echo htmlspecialchars($value['subjects'] ?? $value['title'] ?? 'Original Post'); ?></h5>
                             <div class="mb-1 d-flex align-items-center gap-2">
                                 <strong><?php echo htmlspecialchars($op_display_name); ?></strong>
                                 <?php echo BadgeHelper::renderBadge($op_star_points); ?>

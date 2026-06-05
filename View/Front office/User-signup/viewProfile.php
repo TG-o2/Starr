@@ -136,7 +136,7 @@ if (!empty($avatar) && $avatar !== 'NULL') {
                         </div>
                     </div>
                     <a href="../News/gestionnews.php" class="nav-item nav-link">Articles</a>
-                    <a href="../Education Corner/lessonDetails.php" class="nav-item nav-link">Education Corner</a>
+                    <a href="../Education Corner/lessonDisplay_direct.php" class="nav-item nav-link">Education Corner</a>
                     <a href="viewProfile.php" class="nav-item nav-link active">Profile</a>
 
                 </div>

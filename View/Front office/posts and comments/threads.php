@@ -197,7 +197,7 @@
                         </div>
                     </div>
                     <a href="../News/gestionnews.php" class="nav-item nav-link">Articles</a>
-                    <a href="../Education Corner/lessonDetails.php" class="nav-item nav-link">Education Corner</a>
+                    <a href="../Education Corner/lessonDisplay_direct.php" class="nav-item nav-link">Education Corner</a>
                     <a href="../User-signup/viewProfile.php" class="nav-item nav-link">View Profile</a>
                 </div>
             </div>
@@ -321,7 +321,7 @@
             
             if($matches_category):
                 // Check if post matches search query
-                if(empty($search_query) || strpos(strtolower($value['subject']), $search_query) !== false):
+                if(empty($search_query) || strpos(strtolower($value['subjects']), $search_query) !== false):
                     $posts_found = true;
                     $post_id = $value['id'];
                     $display_name = $value['username'] ?? ($value['fname'] . ' ' . $value['lname']);
@@ -352,7 +352,7 @@
                         </div>
                     </div>
                     
-                    <h5 class="card-title"><?php echo htmlspecialchars($value['subject']); ?></h5>
+                    <h5 class="card-title"><?php echo htmlspecialchars($value['subjects']); ?></h5>
                     <div class="d-flex justify-content-between align-items-center mt-3">
                         <button onclick="location.assign('thread.php?id=<?php echo $post_id; ?>')" 
                                 class="btn btn-outline-primary">
@@ -365,7 +365,7 @@
                                 <i class="fa fa-edit"></i> Edit
                             </a>
                             
-                            <button onclick="return confirmDelete('<?php echo $value['id']; ?>', '<?php echo addslashes($value['subject']); ?>')" 
+                            <button onclick="return confirmDelete('<?php echo $value['id']; ?>', '<?php echo addslashes($value['subjects']); ?>')" 
                                     class="btn btn-danger">
                                 <i class="fa fa-trash"></i> Delete
                             </button>
