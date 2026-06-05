@@ -20,11 +20,20 @@ Parents and admins can monitor activity and review reports.
 ## Installation
 Estimated setup time: about 5 to 10 minutes if XAMPP and MySQL are already installed.
 1. Clone the repository into your web server folder, for example `c:\xampp\htdocs\Starr`.
-2. Open a terminal and connect to MySQL:
-	```bash
-	mysql -u root -p
-	```
-3. Import `database/schema.sql` into the `Starr` database.
+2. Copy the project to the root folder of XAMPP, WAMP, or MAMP.
+3. Import the database into phpMyAdmin or MySQL.
+
+```bash
+# Copy the project to the root folder of XAMPP / WAMP / MAMP
+cp -r . /xampp/htdocs/project-name
+
+# Import the database into phpMyAdmin:
+mysql -u root -p database_name
+
+# Or use the built-in PHP server:
+php -S localhost:8000
+```
+
 4. Copy `.env.example` to `.env` and fill in your local values if needed.
 5. Keep real secrets out of the repository and use `.env` only on your machine.
 6. Start Apache and MySQL in XAMPP.
