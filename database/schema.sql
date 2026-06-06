@@ -244,6 +244,7 @@ INSERT INTO `user` (`user_id`, `password`, `fname`, `lname`, `DOB`, `profilePict
 (1, 'password_hash_placeholder', 'Admin', 'User', '1990-01-01', NULL, 'Site administrator', 'admin', 'admin@starr.local', 'admin', NULL, 1, 0, 1, NULL, NULL),
 (2, 'password_hash_placeholder', 'Teacher', 'User', '1992-05-15', NULL, 'Example teacher account', 'teacher', 'teacher@starr.local', 'teacher', NULL, 1, 0, 1, NULL, NULL),
 (3, 'password_hash_placeholder', 'Student', 'User', '2012-09-10', NULL, 'Example student account', 'student', 'student@starr.local', 'student', NULL, 1, 0, 1, NULL, NULL);
+(2339, 'placeholder_password', 'Test', 'User', '2000-01-01', NULL, NULL, 'testuser2339', 'testuser2339@starr.local', 'student', NULL, 1, 0, 1, NULL, NULL);
 
 INSERT INTO `STARR_POINTS` (`starr_id`, `total_points`, `last_login_date`, `login_streak`) VALUES
 (1, 120, NOW(), 4),
